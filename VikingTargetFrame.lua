@@ -140,6 +140,7 @@ end
 function UnitFrames:OnLoad()
   self.xmlDoc = XmlDoc.CreateFromFile("VikingTargetFrame.xml")
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
+  Apollo.LoadSprites("VikingTargetSprites.xml")
 end
 
 function UnitFrames:OnDocumentReady()
@@ -838,7 +839,7 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
 
       self.wndToTFrame:FindChild("DispositionFrame"):SetTooltip(ktDispositionToTTooltip[eToTDisposition])
     end
-    self.wndLargeFrame:FindChild("Backer"):SetBGColor(ApolloColor.new("992b273d"))
+    -- self.wndLargeFrame:FindChild("Backer"):SetBGColor(ApolloColor.new("992b273d"))
 
     --todo: Tooltips
     local bSameFaction = GameLib.GetPlayerUnit():GetFaction() == unitTarget:GetFaction()
@@ -1176,30 +1177,30 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):MoveToLocation(self.wndLargeFrame:FindChild("MaxShield"):IsShown() and self.arAbsorbPos or self.arShieldPos)
 
-  if not self.wndLargeFrame:FindChild("MaxShield"):IsShown() and not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
-    -- reduce by 2
-    if self.tParams.bFlipped then
-      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-    else
-      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
-    end
-    self.wndLargeFrame:FindChild("HealthSplit"):Show(false)
-  elseif not self.wndLargeFrame:FindChild("MaxShield"):IsShown() or not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
-    -- reduce by 1
-    if self.tParams.bFlipped then
-      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-    else
-      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
-    end
-    self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
-  else
-    if self.tParams.bFlipped then
-      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-    else
-      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
-    end
-    self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
-  end
+  -- if not self.wndLargeFrame:FindChild("MaxShield"):IsShown() and not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
+  --   -- reduce by 2
+  --   if self.tParams.bFlipped then
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+  --   else
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
+  --   end
+  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(false)
+  -- elseif not self.wndLargeFrame:FindChild("MaxShield"):IsShown() or not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
+  --   -- reduce by 1
+  --   if self.tParams.bFlipped then
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+  --   else
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
+  --   end
+  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
+  -- else
+  --   if self.tParams.bFlipped then
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+  --   else
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
+  --   end
+  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
+  -- end
 
   -- String
   local strHealthMax = self:HelperFormatBigNumber(nHealthMax)
