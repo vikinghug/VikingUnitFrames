@@ -8,18 +8,18 @@ require "P2PTrading"
 local VikingTargetFrame = {}
 local UnitFrames = {}
 
-local knMaxLevel              = 50
-local knIconicArchetype           = 23
-local knFrameWidthMax           = 400
-local knFrameWidthShield          = 372
-local knFrameWidthMin           = 340
-local knClusterFrameWidth           = 60 -- MUST MATCH XML
-local knClusterFrameHeight          = 62 -- MUST MATCH XML
-local knClusterFrameVertOffset        = 100 -- how far down to move the cluster members
-local knHealthRed             = 0.3
-local knHealthYellow            = 0.5
-local knWindowStayOnScreenWidthOffset     = 200
-local knWindowStayOnScreenHeightOffset    = 200
+local knMaxLevel                       = 50
+local knIconicArchetype                = 23
+local knFrameWidthMax                  = 400
+local knFrameWidthShield               = 372
+local knFrameWidthMin                  = 340
+local knClusterFrameWidth              = 60 -- MUST MATCH XML
+local knClusterFrameHeight             = 62 -- MUST MATCH XML
+local knClusterFrameVertOffset         = 100 -- how far down to move the cluster members
+local knHealthRed                      = 0.3
+local knHealthYellow                   = 0.5
+local knWindowStayOnScreenWidthOffset  = 200
+local knWindowStayOnScreenHeightOffset = 200
 
 local kstrScalingHex = "ffffbf80"
 local kcrScalingCColor = CColor.new(1.0, 191/255, 128/255, 0.7)
@@ -53,63 +53,63 @@ local kstrRaidMarkerToSprite =
 local karFactionToString = --Used for the Attachment Frame Sprites
 {
   [Unit.CodeEnumFaction.ExilesPlayer]   = "Exile",
-  [171]                 = "Exile", --Exile NPC's
+  [171]                                 = "Exile", --Exile NPC's
 
   [Unit.CodeEnumFaction.DominionPlayer] = "Dominion",
-  [170]                 = "Dominion", --Dominion NPC's
+  [170]                                 = "Dominion", --Dominion NPC's
 }
 
 -- Todo: break these out onto options
-local kcrGroupTextColor         = ApolloColor.new("crayBlizzardBlue")
-local kcrFlaggedFriendlyTextColor     = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
-local kcrDefaultGuildmemberTextColor  = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
-local kcrHostileEnemyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Hostile]
-local kcrAggressiveEnemyTextColor     = karDispositionColors[Unit.CodeEnumDisposition.Neutral]
-local kcrNeutralEnemyTextColor      = ApolloColor.new("crayDenim")
-local kcrDefaultUnflaggedAllyTextColor  = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
+local kcrGroupTextColor                = ApolloColor.new("crayBlizzardBlue")
+local kcrFlaggedFriendlyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
+local kcrDefaultGuildmemberTextColor   = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
+local kcrHostileEnemyTextColor         = karDispositionColors[Unit.CodeEnumDisposition.Hostile]
+local kcrAggressiveEnemyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Neutral]
+local kcrNeutralEnemyTextColor         = ApolloColor.new("crayDenim")
+local kcrDefaultUnflaggedAllyTextColor = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 
 -- TODO:Localize all of these
 -- differential value, color, title, description, title color (for tooltip)
 local karConInfo =
 {
-  {-4, ApolloColor.new("ConTrivial"),   Apollo.GetString("TargetFrame_Trivial"),  Apollo.GetString("TargetFrame_NoXP"),         "ff7d7d7d"},
-  {-3, ApolloColor.new("ConInferior"),  Apollo.GetString("TargetFrame_Inferior"),   Apollo.GetString("TargetFrame_VeryReducedXP"),    "ff01ff07"},
-  {-2, ApolloColor.new("ConMinor"),     Apollo.GetString("TargetFrame_Minor"),    Apollo.GetString("TargetFrame_ReducedXP"),      "ff01fcff"},
-  {-1, ApolloColor.new("ConEasy"),    Apollo.GetString("TargetFrame_Easy"),     Apollo.GetString("TargetFrame_SlightlyReducedXP"),  "ff597cff"},
-  { 0, ApolloColor.new("ConAverage"),   Apollo.GetString("TargetFrame_Average"),  Apollo.GetString("TargetFrame_StandardXP"),     "ffffffff"},
-  { 1, ApolloColor.new("ConModerate"),  Apollo.GetString("TargetFrame_Moderate"),   Apollo.GetString("TargetFrame_SlightlyMoreXP"),   "ffffff00"},
-  { 2, ApolloColor.new("ConTough"),     Apollo.GetString("TargetFrame_Tough"),    Apollo.GetString("TargetFrame_IncreasedXP"),    "ffff8000"},
-  { 3, ApolloColor.new("ConHard"),    Apollo.GetString("TargetFrame_Hard"),     Apollo.GetString("TargetFrame_HighlyIncreasedXP"),  "ffff0000"},
-  { 4, ApolloColor.new("ConImpossible"),  Apollo.GetString("TargetFrame_Impossible"), Apollo.GetString("TargetFrame_GreatlyIncreasedXP"), "ffff00ff"}
+  {-4 , ApolloColor.new("ConTrivial")    , Apollo.GetString("TargetFrame_Trivial")    , Apollo.GetString("TargetFrame_NoXP")               , "ff7d7d7d"},
+  {-3 , ApolloColor.new("ConInferior")   , Apollo.GetString("TargetFrame_Inferior")   , Apollo.GetString("TargetFrame_VeryReducedXP")      , "ff01ff07"},
+  {-2 , ApolloColor.new("ConMinor")      , Apollo.GetString("TargetFrame_Minor")      , Apollo.GetString("TargetFrame_ReducedXP")          , "ff01fcff"},
+  {-1 , ApolloColor.new("ConEasy")       , Apollo.GetString("TargetFrame_Easy")       , Apollo.GetString("TargetFrame_SlightlyReducedXP")  , "ff597cff"},
+  { 0 , ApolloColor.new("ConAverage")    , Apollo.GetString("TargetFrame_Average")    , Apollo.GetString("TargetFrame_StandardXP")         , "ffffffff"},
+  { 1 , ApolloColor.new("ConModerate")   , Apollo.GetString("TargetFrame_Moderate")   , Apollo.GetString("TargetFrame_SlightlyMoreXP")     , "ffffff00"},
+  { 2 , ApolloColor.new("ConTough")      , Apollo.GetString("TargetFrame_Tough")      , Apollo.GetString("TargetFrame_IncreasedXP")        , "ffff8000"},
+  { 3 , ApolloColor.new("ConHard")       , Apollo.GetString("TargetFrame_Hard")       , Apollo.GetString("TargetFrame_HighlyIncreasedXP")  , "ffff0000"},
+  { 4 , ApolloColor.new("ConImpossible") , Apollo.GetString("TargetFrame_Impossible") , Apollo.GetString("TargetFrame_GreatlyIncreasedXP") , "ffff00ff"}
 }
 
 -- Todo: Localize
 local ktRankDescriptions =
 {
-  [Unit.CodeEnumRank.Fodder]    =   {Apollo.GetString("TargetFrame_Fodder"),    Apollo.GetString("TargetFrame_VeryWeak")},
-  [Unit.CodeEnumRank.Minion]    =   {Apollo.GetString("TargetFrame_Minion"),    Apollo.GetString("TargetFrame_Weak")},
-  [Unit.CodeEnumRank.Standard]  =   {Apollo.GetString("TargetFrame_Grunt"),     Apollo.GetString("TargetFrame_EasyAppend")},
-  [Unit.CodeEnumRank.Champion]  = {Apollo.GetString("TargetFrame_Challenger"),  Apollo.GetString("TargetFrame_AlmostEqual")},
-  [Unit.CodeEnumRank.Superior]  =   {Apollo.GetString("TargetFrame_Superior"),    Apollo.GetString("TargetFrame_Strong")},
-  [Unit.CodeEnumRank.Elite]     =   {Apollo.GetString("TargetFrame_Prime"),     Apollo.GetString("TargetFrame_VeryStrong")},
+  [Unit.CodeEnumRank.Fodder]    =   {Apollo.GetString("TargetFrame_Fodder")   , Apollo.GetString("TargetFrame_VeryWeak")},
+  [Unit.CodeEnumRank.Minion]    =   {Apollo.GetString("TargetFrame_Minion")   , Apollo.GetString("TargetFrame_Weak")},
+  [Unit.CodeEnumRank.Standard]  =   {Apollo.GetString("TargetFrame_Grunt")    , Apollo.GetString("TargetFrame_EasyAppend")},
+  [Unit.CodeEnumRank.Champion]  = {Apollo.GetString("TargetFrame_Challenger") , Apollo.GetString("TargetFrame_AlmostEqual")},
+  [Unit.CodeEnumRank.Superior]  =   {Apollo.GetString("TargetFrame_Superior") , Apollo.GetString("TargetFrame_Strong")},
+  [Unit.CodeEnumRank.Elite]     =   {Apollo.GetString("TargetFrame_Prime")    , Apollo.GetString("TargetFrame_VeryStrong")}
 }
 
 local karClassToIcon =
 {
-  [GameLib.CodeEnumClass.Warrior]     = "IconSprites:Icon_Windows_UI_CRB_Warrior",
-  [GameLib.CodeEnumClass.Engineer]    = "IconSprites:Icon_Windows_UI_CRB_Engineer",
-  [GameLib.CodeEnumClass.Esper]       = "IconSprites:Icon_Windows_UI_CRB_Esper",
-  [GameLib.CodeEnumClass.Medic]       = "IconSprites:Icon_Windows_UI_CRB_Medic",
-  [GameLib.CodeEnumClass.Stalker]     = "IconSprites:Icon_Windows_UI_CRB_Stalker",
+  [GameLib.CodeEnumClass.Warrior]       = "IconSprites:Icon_Windows_UI_CRB_Warrior",
+  [GameLib.CodeEnumClass.Engineer]      = "IconSprites:Icon_Windows_UI_CRB_Engineer",
+  [GameLib.CodeEnumClass.Esper]         = "IconSprites:Icon_Windows_UI_CRB_Esper",
+  [GameLib.CodeEnumClass.Medic]         = "IconSprites:Icon_Windows_UI_CRB_Medic",
+  [GameLib.CodeEnumClass.Stalker]       = "IconSprites:Icon_Windows_UI_CRB_Stalker",
   [GameLib.CodeEnumClass.Spellslinger]  = "IconSprites:Icon_Windows_UI_CRB_Spellslinger",
 }
 
-local kstrTooltipBodyColor = "ffc0c0c0"
-local kstrTooltipTitleColor = "ffdadada"
+local kstrTooltipBodyColor      = "ffc0c0c0"
+local kstrTooltipTitleColor     = "ffdadada"
 
-local kstrFriendSprite      = "ClientSprites:Icon_Windows_UI_CRB_Friend"
+local kstrFriendSprite          = "ClientSprites:Icon_Windows_UI_CRB_Friend"
 local kstrAccountFriendSprite   = "ClientSprites:Icon_Windows_UI_CRB_Friend"
-local kstrRivalSprite       = "ClientSprites:Icon_Windows_UI_CRB_Rival"
+local kstrRivalSprite           = "ClientSprites:Icon_Windows_UI_CRB_Rival"
 
 function UnitFrames:new(o)
   o = o or {}
@@ -195,9 +195,9 @@ function UnitFrames:OnFocusSlashCommand()
 end
 
 function UnitFrames:OnWindowManagementReady()
-  Event_FireGenericEvent("WindowManagementAdd", {wnd = self.luaUnitFrame.wndMainClusterFrame,   strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel")})
-  Event_FireGenericEvent("WindowManagementAdd", {wnd = self.luaVikingTargetFrame.wndMainClusterFrame, strName = Apollo.GetString("OptionsHUD_TargetFrameLabel")})
-  Event_FireGenericEvent("WindowManagementAdd", {wnd = self.luaFocusFrame.wndMainClusterFrame,  strName = Apollo.GetString("OptionsHUD_FocusTargetLabel")})
+  Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaUnitFrame.wndMainClusterFrame         , strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel")})
+  Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaVikingTargetFrame.wndMainClusterFrame , strName = Apollo.GetString("OptionsHUD_TargetFrameLabel")})
+  Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaFocusFrame.wndMainClusterFrame        , strName = Apollo.GetString("OptionsHUD_FocusTargetLabel")})
 end
 
 function VikingTargetFrame:new(o)
@@ -213,7 +213,7 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
   self.luaUnitFrameSystem = luaUnitFrameSystem
 
   Apollo.RegisterEventHandler("Tutorial_RequestUIAnchor",     "OnTutorial_RequestUIAnchor", self)
-  Apollo.RegisterEventHandler("KeyBindingKeyChanged",       "OnKeyBindingUpdated", self)
+  Apollo.RegisterEventHandler("KeyBindingKeyChanged",         "OnKeyBindingUpdated",        self)
 
   self.tParams = {
     fScale      = tParams.fScale or 1,
