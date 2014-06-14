@@ -13,8 +13,8 @@ local knIconicArchetype                = 23
 local knFrameWidthMax                  = 400
 local knFrameWidthShield               = 372
 local knFrameWidthMin                  = 340
-local knClusterFrameWidth              = 60 -- MUST MATCH XML
-local knClusterFrameHeight             = 62 -- MUST MATCH XML
+local knClusterFrameWidth              = 150 -- MUST MATCH XML
+local knClusterFrameHeight             = 400 -- MUST MATCH XML
 local knClusterFrameVertOffset         = 100 -- how far down to move the cluster members
 local knHealthRed                      = 0.3
 local knHealthYellow                   = 0.5
@@ -24,11 +24,25 @@ local knWindowStayOnScreenHeightOffset = 200
 local kstrScalingHex = "ffffbf80"
 local kcrScalingCColor = CColor.new(1.0, 191/255, 128/255, 0.7)
 
+-- let's create some member variables
+local tColors = {
+  black       = ApolloColor.new("ff201e2d"),
+  white       = ApolloColor.new("ffffffff"),
+  lightGrey   = ApolloColor.new("ffbcb7da"),
+  green       = ApolloColor.new("ff3cb878"),
+  yellow      = ApolloColor.new("ffffd161"),
+  lightPurple = ApolloColor.new("ff645f7e"),
+  purple      = ApolloColor.new("ff28253a"),
+  red         = ApolloColor.new("ffe05757"),
+  blue        = ApolloColor.new("ff24a7aa")
+}
+
+
 local karDispositionColors =
 {
-  [Unit.CodeEnumDisposition.Neutral]  = ApolloColor.new("DispositionNeutral"),
-  [Unit.CodeEnumDisposition.Hostile]  = ApolloColor.new("DispositionHostile"),
-  [Unit.CodeEnumDisposition.Friendly] = ApolloColor.new("DispositionFriendly"),
+  [Unit.CodeEnumDisposition.Neutral]  = tColors.lightGrey,
+  [Unit.CodeEnumDisposition.Hostile]  = tColors.red,
+  [Unit.CodeEnumDisposition.Friendly] = tColors.green,
 }
 
 local ktDispositionToTTooltip =
@@ -204,6 +218,7 @@ function VikingTargetFrame:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
+
   return o
 end
 
@@ -533,9 +548,9 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   wndFrame:FindChild("ShieldFill"):EnableGlow(nShieldCurr > 0)
   self:SetBarValue(wndFrame:FindChild("ShieldFill"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(wndFrame:FindChild("AbsorbFill"), 0, nAbsorbCurr, nAbsorbMax)
-  wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
-  wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
-  wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
+  -- wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
+  -- wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
+  -- wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
 
   -- Bars
   wndFrame:FindChild("ShieldFill"):Show(nHealthCurr > 0)
@@ -761,7 +776,6 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
       strClassIconSprite = "spr_TargetFrame_ClassIcon_Fodder"
     end
 
-    wndFrame:FindChild("TargetIconShadow"):Show(strPlayerIconSprite ~= "" or strClassIconSprite ~= "")
     wndFrame:FindChild("PlayerClassIcon"):SetSprite(strPlayerIconSprite)
     wndFrame:FindChild("TargetClassIcon"):SetSprite(strClassIconSprite)
 
@@ -1127,13 +1141,18 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   local strFlipped = self.tParams.bFlipped and "Flipped" or ""
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
   if unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillVulernable"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillVulernable"..strFlipped)
+    wndHealth:SetBarColor(tColors.lightPurple)
+
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillRed"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillRed"..strFlipped)
+    wndHealth:SetBarColor(tColors.red)
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillYellow"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillYellow"..strFlipped)
+    wndHealth:SetBarColor(tColors.yellow)
   else
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillGreen"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillGreen"..strFlipped)
+    wndHealth:SetBarColor(tColors.green)
   end
 
   wndHealth:SetStyleEx("EdgeGlow", nHealthCurr / nHealthMax < 0.96)
@@ -1148,6 +1167,7 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
 
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetMax(nShieldMax);
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetProgress(nShieldCurr);
+  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(tColors.blue);
 
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetMax(nAbsorbMax);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
@@ -1159,24 +1179,24 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   if not self.wndLargeFrame:FindChild("MaxShield"):IsShown() and not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
     -- reduce by 2
     if self.tParams.bFlipped then
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
     else
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
+      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
     end
     self.wndLargeFrame:FindChild("HealthSplit"):Show(false)
   elseif not self.wndLargeFrame:FindChild("MaxShield"):IsShown() or not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
     -- reduce by 1
     if self.tParams.bFlipped then
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
     else
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
+      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
     end
     self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
   else
     if self.tParams.bFlipped then
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
     else
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
+      -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
     end
     self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
   end
