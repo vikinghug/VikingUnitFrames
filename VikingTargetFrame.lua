@@ -29,12 +29,12 @@ local tColors = {
   black       = ApolloColor.new("ff201e2d"),
   white       = ApolloColor.new("ffffffff"),
   lightGrey   = ApolloColor.new("ffbcb7da"),
-  green       = ApolloColor.new("ff3cb878"),
+  green       = ApolloColor.new("cc06ff5e"),
   yellow      = ApolloColor.new("ffffd161"),
   lightPurple = ApolloColor.new("ff645f7e"),
   purple      = ApolloColor.new("ff28253a"),
   red         = ApolloColor.new("ffe05757"),
-  blue        = ApolloColor.new("ff24a7aa")
+  blue        = ApolloColor.new("cc49e8ee")
 }
 
 
@@ -110,12 +110,12 @@ local ktRankDescriptions =
 
 local karClassToIcon =
 {
-  [GameLib.CodeEnumClass.Warrior]       = "IconSprites:Icon_Windows_UI_CRB_Warrior",
-  [GameLib.CodeEnumClass.Engineer]      = "IconSprites:Icon_Windows_UI_CRB_Engineer",
-  [GameLib.CodeEnumClass.Esper]         = "IconSprites:Icon_Windows_UI_CRB_Esper",
-  [GameLib.CodeEnumClass.Medic]         = "IconSprites:Icon_Windows_UI_CRB_Medic",
-  [GameLib.CodeEnumClass.Stalker]       = "IconSprites:Icon_Windows_UI_CRB_Stalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "IconSprites:Icon_Windows_UI_CRB_Spellslinger",
+  [GameLib.CodeEnumClass.Warrior]       = "VikingTargetSprites:ClassWarrior",
+  [GameLib.CodeEnumClass.Engineer]      = "VikingTargetSprites:ClassEngineer",
+  [GameLib.CodeEnumClass.Esper]         = "VikingTargetSprites:ClassEsper",
+  [GameLib.CodeEnumClass.Medic]         = "VikingTargetSprites:ClassMedic",
+  [GameLib.CodeEnumClass.Stalker]       = "VikingTargetSprites:ClassStalker",
+  [GameLib.CodeEnumClass.Spellslinger]  = "VikingTargetSprites:ClassSpellslinger",
 }
 
 local kstrTooltipBodyColor      = "ffc0c0c0"
