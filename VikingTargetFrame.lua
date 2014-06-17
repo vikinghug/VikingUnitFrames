@@ -8,27 +8,41 @@ require "P2PTrading"
 local VikingTargetFrame = {}
 local UnitFrames = {}
 
-local knMaxLevel              = 50
-local knIconicArchetype           = 23
-local knFrameWidthMax           = 400
-local knFrameWidthShield          = 372
-local knFrameWidthMin           = 340
-local knClusterFrameWidth           = 60 -- MUST MATCH XML
-local knClusterFrameHeight          = 62 -- MUST MATCH XML
-local knClusterFrameVertOffset        = 100 -- how far down to move the cluster members
-local knHealthRed             = 0.3
-local knHealthYellow            = 0.5
-local knWindowStayOnScreenWidthOffset     = 200
-local knWindowStayOnScreenHeightOffset    = 200
+local knMaxLevel                       = 50
+local knIconicArchetype                = 23
+local knFrameWidthMax                  = 400
+local knFrameWidthShield               = 372
+local knFrameWidthMin                  = 340
+local knClusterFrameWidth              = 150 -- MUST MATCH XML
+local knClusterFrameHeight             = 400 -- MUST MATCH XML
+local knClusterFrameVertOffset         = 100 -- how far down to move the cluster members
+local knHealthRed                      = 0.3
+local knHealthYellow                   = 0.5
+local knWindowStayOnScreenWidthOffset  = 200
+local knWindowStayOnScreenHeightOffset = 200
 
 local kstrScalingHex = "ffffbf80"
 local kcrScalingCColor = CColor.new(1.0, 191/255, 128/255, 0.7)
 
+-- let's create some member variables
+local tColors = {
+  black       = ApolloColor.new("ff201e2d"),
+  white       = ApolloColor.new("ffffffff"),
+  lightGrey   = ApolloColor.new("ffbcb7da"),
+  green       = ApolloColor.new("cc06ff5e"),
+  yellow      = ApolloColor.new("ffffd161"),
+  lightPurple = ApolloColor.new("ff645f7e"),
+  purple      = ApolloColor.new("ff28253a"),
+  red         = ApolloColor.new("ffe05757"),
+  blue        = ApolloColor.new("cc49e8ee")
+}
+
+
 local karDispositionColors =
 {
-  [Unit.CodeEnumDisposition.Neutral]  = ApolloColor.new("DispositionNeutral"),
-  [Unit.CodeEnumDisposition.Hostile]  = ApolloColor.new("DispositionHostile"),
-  [Unit.CodeEnumDisposition.Friendly] = ApolloColor.new("DispositionFriendly"),
+  [Unit.CodeEnumDisposition.Neutral]  = tColors.lightGrey,
+  [Unit.CodeEnumDisposition.Hostile]  = tColors.red,
+  [Unit.CodeEnumDisposition.Friendly] = tColors.green,
 }
 
 local ktDispositionToTTooltip =
@@ -53,63 +67,63 @@ local kstrRaidMarkerToSprite =
 local karFactionToString = --Used for the Attachment Frame Sprites
 {
   [Unit.CodeEnumFaction.ExilesPlayer]   = "Exile",
-  [171]                 = "Exile", --Exile NPC's
+  [171]                                 = "Exile", --Exile NPC's
 
   [Unit.CodeEnumFaction.DominionPlayer] = "Dominion",
-  [170]                 = "Dominion", --Dominion NPC's
+  [170]                                 = "Dominion", --Dominion NPC's
 }
 
 -- Todo: break these out onto options
-local kcrGroupTextColor         = ApolloColor.new("crayBlizzardBlue")
-local kcrFlaggedFriendlyTextColor     = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
-local kcrDefaultGuildmemberTextColor  = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
-local kcrHostileEnemyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Hostile]
-local kcrAggressiveEnemyTextColor     = karDispositionColors[Unit.CodeEnumDisposition.Neutral]
-local kcrNeutralEnemyTextColor      = ApolloColor.new("crayDenim")
-local kcrDefaultUnflaggedAllyTextColor  = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
+local kcrGroupTextColor                = ApolloColor.new("crayBlizzardBlue")
+local kcrFlaggedFriendlyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
+local kcrDefaultGuildmemberTextColor   = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
+local kcrHostileEnemyTextColor         = karDispositionColors[Unit.CodeEnumDisposition.Hostile]
+local kcrAggressiveEnemyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Neutral]
+local kcrNeutralEnemyTextColor         = ApolloColor.new("crayDenim")
+local kcrDefaultUnflaggedAllyTextColor = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 
 -- TODO:Localize all of these
 -- differential value, color, title, description, title color (for tooltip)
 local karConInfo =
 {
-  {-4, ApolloColor.new("ConTrivial"),   Apollo.GetString("TargetFrame_Trivial"),  Apollo.GetString("TargetFrame_NoXP"),         "ff7d7d7d"},
-  {-3, ApolloColor.new("ConInferior"),  Apollo.GetString("TargetFrame_Inferior"),   Apollo.GetString("TargetFrame_VeryReducedXP"),    "ff01ff07"},
-  {-2, ApolloColor.new("ConMinor"),     Apollo.GetString("TargetFrame_Minor"),    Apollo.GetString("TargetFrame_ReducedXP"),      "ff01fcff"},
-  {-1, ApolloColor.new("ConEasy"),    Apollo.GetString("TargetFrame_Easy"),     Apollo.GetString("TargetFrame_SlightlyReducedXP"),  "ff597cff"},
-  { 0, ApolloColor.new("ConAverage"),   Apollo.GetString("TargetFrame_Average"),  Apollo.GetString("TargetFrame_StandardXP"),     "ffffffff"},
-  { 1, ApolloColor.new("ConModerate"),  Apollo.GetString("TargetFrame_Moderate"),   Apollo.GetString("TargetFrame_SlightlyMoreXP"),   "ffffff00"},
-  { 2, ApolloColor.new("ConTough"),     Apollo.GetString("TargetFrame_Tough"),    Apollo.GetString("TargetFrame_IncreasedXP"),    "ffff8000"},
-  { 3, ApolloColor.new("ConHard"),    Apollo.GetString("TargetFrame_Hard"),     Apollo.GetString("TargetFrame_HighlyIncreasedXP"),  "ffff0000"},
-  { 4, ApolloColor.new("ConImpossible"),  Apollo.GetString("TargetFrame_Impossible"), Apollo.GetString("TargetFrame_GreatlyIncreasedXP"), "ffff00ff"}
+  {-4 , ApolloColor.new("ConTrivial")    , Apollo.GetString("TargetFrame_Trivial")    , Apollo.GetString("TargetFrame_NoXP")               , "ff7d7d7d"},
+  {-3 , ApolloColor.new("ConInferior")   , Apollo.GetString("TargetFrame_Inferior")   , Apollo.GetString("TargetFrame_VeryReducedXP")      , "ff01ff07"},
+  {-2 , ApolloColor.new("ConMinor")      , Apollo.GetString("TargetFrame_Minor")      , Apollo.GetString("TargetFrame_ReducedXP")          , "ff01fcff"},
+  {-1 , ApolloColor.new("ConEasy")       , Apollo.GetString("TargetFrame_Easy")       , Apollo.GetString("TargetFrame_SlightlyReducedXP")  , "ff597cff"},
+  { 0 , ApolloColor.new("ConAverage")    , Apollo.GetString("TargetFrame_Average")    , Apollo.GetString("TargetFrame_StandardXP")         , "ffffffff"},
+  { 1 , ApolloColor.new("ConModerate")   , Apollo.GetString("TargetFrame_Moderate")   , Apollo.GetString("TargetFrame_SlightlyMoreXP")     , "ffffff00"},
+  { 2 , ApolloColor.new("ConTough")      , Apollo.GetString("TargetFrame_Tough")      , Apollo.GetString("TargetFrame_IncreasedXP")        , "ffff8000"},
+  { 3 , ApolloColor.new("ConHard")       , Apollo.GetString("TargetFrame_Hard")       , Apollo.GetString("TargetFrame_HighlyIncreasedXP")  , "ffff0000"},
+  { 4 , ApolloColor.new("ConImpossible") , Apollo.GetString("TargetFrame_Impossible") , Apollo.GetString("TargetFrame_GreatlyIncreasedXP") , "ffff00ff"}
 }
 
 -- Todo: Localize
 local ktRankDescriptions =
 {
-  [Unit.CodeEnumRank.Fodder]    =   {Apollo.GetString("TargetFrame_Fodder"),    Apollo.GetString("TargetFrame_VeryWeak")},
-  [Unit.CodeEnumRank.Minion]    =   {Apollo.GetString("TargetFrame_Minion"),    Apollo.GetString("TargetFrame_Weak")},
-  [Unit.CodeEnumRank.Standard]  =   {Apollo.GetString("TargetFrame_Grunt"),     Apollo.GetString("TargetFrame_EasyAppend")},
-  [Unit.CodeEnumRank.Champion]  = {Apollo.GetString("TargetFrame_Challenger"),  Apollo.GetString("TargetFrame_AlmostEqual")},
-  [Unit.CodeEnumRank.Superior]  =   {Apollo.GetString("TargetFrame_Superior"),    Apollo.GetString("TargetFrame_Strong")},
-  [Unit.CodeEnumRank.Elite]     =   {Apollo.GetString("TargetFrame_Prime"),     Apollo.GetString("TargetFrame_VeryStrong")},
+  [Unit.CodeEnumRank.Fodder]    =   {Apollo.GetString("TargetFrame_Fodder")   , Apollo.GetString("TargetFrame_VeryWeak")},
+  [Unit.CodeEnumRank.Minion]    =   {Apollo.GetString("TargetFrame_Minion")   , Apollo.GetString("TargetFrame_Weak")},
+  [Unit.CodeEnumRank.Standard]  =   {Apollo.GetString("TargetFrame_Grunt")    , Apollo.GetString("TargetFrame_EasyAppend")},
+  [Unit.CodeEnumRank.Champion]  = {Apollo.GetString("TargetFrame_Challenger") , Apollo.GetString("TargetFrame_AlmostEqual")},
+  [Unit.CodeEnumRank.Superior]  =   {Apollo.GetString("TargetFrame_Superior") , Apollo.GetString("TargetFrame_Strong")},
+  [Unit.CodeEnumRank.Elite]     =   {Apollo.GetString("TargetFrame_Prime")    , Apollo.GetString("TargetFrame_VeryStrong")}
 }
 
 local karClassToIcon =
 {
-  [GameLib.CodeEnumClass.Warrior]     = "IconSprites:Icon_Windows_UI_CRB_Warrior",
-  [GameLib.CodeEnumClass.Engineer]    = "IconSprites:Icon_Windows_UI_CRB_Engineer",
-  [GameLib.CodeEnumClass.Esper]       = "IconSprites:Icon_Windows_UI_CRB_Esper",
-  [GameLib.CodeEnumClass.Medic]       = "IconSprites:Icon_Windows_UI_CRB_Medic",
-  [GameLib.CodeEnumClass.Stalker]     = "IconSprites:Icon_Windows_UI_CRB_Stalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "IconSprites:Icon_Windows_UI_CRB_Spellslinger",
+  [GameLib.CodeEnumClass.Warrior]       = "VikingTargetSprites:ClassWarrior",
+  [GameLib.CodeEnumClass.Engineer]      = "VikingTargetSprites:ClassEngineer",
+  [GameLib.CodeEnumClass.Esper]         = "VikingTargetSprites:ClassEsper",
+  [GameLib.CodeEnumClass.Medic]         = "VikingTargetSprites:ClassMedic",
+  [GameLib.CodeEnumClass.Stalker]       = "VikingTargetSprites:ClassStalker",
+  [GameLib.CodeEnumClass.Spellslinger]  = "VikingTargetSprites:ClassSpellslinger",
 }
 
-local kstrTooltipBodyColor = "ffc0c0c0"
-local kstrTooltipTitleColor = "ffdadada"
+local kstrTooltipBodyColor      = "ffc0c0c0"
+local kstrTooltipTitleColor     = "ffdadada"
 
-local kstrFriendSprite      = "ClientSprites:Icon_Windows_UI_CRB_Friend"
+local kstrFriendSprite          = "ClientSprites:Icon_Windows_UI_CRB_Friend"
 local kstrAccountFriendSprite   = "ClientSprites:Icon_Windows_UI_CRB_Friend"
-local kstrRivalSprite       = "ClientSprites:Icon_Windows_UI_CRB_Rival"
+local kstrRivalSprite           = "ClientSprites:Icon_Windows_UI_CRB_Rival"
 
 function UnitFrames:new(o)
   o = o or {}
@@ -126,6 +140,7 @@ end
 function UnitFrames:OnLoad()
   self.xmlDoc = XmlDoc.CreateFromFile("VikingTargetFrame.xml")
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
+  Apollo.LoadSprites("VikingTargetSprites.xml")
 end
 
 function UnitFrames:OnDocumentReady()
@@ -195,15 +210,16 @@ function UnitFrames:OnFocusSlashCommand()
 end
 
 function UnitFrames:OnWindowManagementReady()
-  Event_FireGenericEvent("WindowManagementAdd", {wnd = self.luaUnitFrame.wndMainClusterFrame,   strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel")})
-  Event_FireGenericEvent("WindowManagementAdd", {wnd = self.luaVikingTargetFrame.wndMainClusterFrame, strName = Apollo.GetString("OptionsHUD_TargetFrameLabel")})
-  Event_FireGenericEvent("WindowManagementAdd", {wnd = self.luaFocusFrame.wndMainClusterFrame,  strName = Apollo.GetString("OptionsHUD_FocusTargetLabel")})
+  Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaUnitFrame.wndMainClusterFrame         , strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel")})
+  Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaVikingTargetFrame.wndMainClusterFrame , strName = Apollo.GetString("OptionsHUD_TargetFrameLabel")})
+  Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaFocusFrame.wndMainClusterFrame        , strName = Apollo.GetString("OptionsHUD_FocusTargetLabel")})
 end
 
 function VikingTargetFrame:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
+
   return o
 end
 
@@ -213,7 +229,7 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
   self.luaUnitFrameSystem = luaUnitFrameSystem
 
   Apollo.RegisterEventHandler("Tutorial_RequestUIAnchor",     "OnTutorial_RequestUIAnchor", self)
-  Apollo.RegisterEventHandler("KeyBindingKeyChanged",       "OnKeyBindingUpdated", self)
+  Apollo.RegisterEventHandler("KeyBindingKeyChanged",         "OnKeyBindingUpdated",        self)
 
   self.tParams = {
     fScale      = tParams.fScale or 1,
@@ -533,9 +549,9 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   wndFrame:FindChild("ShieldFill"):EnableGlow(nShieldCurr > 0)
   self:SetBarValue(wndFrame:FindChild("ShieldFill"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(wndFrame:FindChild("AbsorbFill"), 0, nAbsorbCurr, nAbsorbMax)
-  wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
-  wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
-  wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
+  -- wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
+  -- wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
+  -- wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
 
   -- Bars
   wndFrame:FindChild("ShieldFill"):Show(nHealthCurr > 0)
@@ -761,7 +777,6 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
       strClassIconSprite = "spr_TargetFrame_ClassIcon_Fodder"
     end
 
-    wndFrame:FindChild("TargetIconShadow"):Show(strPlayerIconSprite ~= "" or strClassIconSprite ~= "")
     wndFrame:FindChild("PlayerClassIcon"):SetSprite(strPlayerIconSprite)
     wndFrame:FindChild("TargetClassIcon"):SetSprite(strClassIconSprite)
 
@@ -824,7 +839,7 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
 
       self.wndToTFrame:FindChild("DispositionFrame"):SetTooltip(ktDispositionToTTooltip[eToTDisposition])
     end
-    self.wndLargeFrame:FindChild("Backer"):SetBGColor(ApolloColor.new("992b273d"))
+    -- self.wndLargeFrame:FindChild("Backer"):SetBGColor(ApolloColor.new("992b273d"))
 
     --todo: Tooltips
     local bSameFaction = GameLib.GetPlayerUnit():GetFaction() == unitTarget:GetFaction()
@@ -1127,13 +1142,18 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   local strFlipped = self.tParams.bFlipped and "Flipped" or ""
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
   if unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillVulernable"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillVulernable"..strFlipped)
+    wndHealth:SetBarColor(tColors.lightPurple)
+
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillRed"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillRed"..strFlipped)
+    wndHealth:SetBarColor(tColors.red)
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillYellow"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillYellow"..strFlipped)
+    wndHealth:SetBarColor(tColors.yellow)
   else
-    wndHealth:SetFullSprite("spr_TargetFrame_HealthFillGreen"..strFlipped)
+    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillGreen"..strFlipped)
+    wndHealth:SetBarColor(tColors.green)
   end
 
   wndHealth:SetStyleEx("EdgeGlow", nHealthCurr / nHealthMax < 0.96)
@@ -1148,6 +1168,7 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
 
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetMax(nShieldMax);
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetProgress(nShieldCurr);
+  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(tColors.blue);
 
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetMax(nAbsorbMax);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
@@ -1156,30 +1177,30 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):MoveToLocation(self.wndLargeFrame:FindChild("MaxShield"):IsShown() and self.arAbsorbPos or self.arShieldPos)
 
-  if not self.wndLargeFrame:FindChild("MaxShield"):IsShown() and not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
-    -- reduce by 2
-    if self.tParams.bFlipped then
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-    else
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
-    end
-    self.wndLargeFrame:FindChild("HealthSplit"):Show(false)
-  elseif not self.wndLargeFrame:FindChild("MaxShield"):IsShown() or not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
-    -- reduce by 1
-    if self.tParams.bFlipped then
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-    else
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
-    end
-    self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
-  else
-    if self.tParams.bFlipped then
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-    else
-      self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
-    end
-    self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
-  end
+  -- if not self.wndLargeFrame:FindChild("MaxShield"):IsShown() and not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
+  --   -- reduce by 2
+  --   if self.tParams.bFlipped then
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+  --   else
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
+  --   end
+  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(false)
+  -- elseif not self.wndLargeFrame:FindChild("MaxShield"):IsShown() or not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
+  --   -- reduce by 1
+  --   if self.tParams.bFlipped then
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+  --   else
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
+  --   end
+  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
+  -- else
+  --   if self.tParams.bFlipped then
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
+  --   else
+  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
+  --   end
+  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
+  -- end
 
   -- String
   local strHealthMax = self:HelperFormatBigNumber(nHealthMax)
