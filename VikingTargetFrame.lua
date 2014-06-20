@@ -165,8 +165,8 @@ function UnitFrames:OnDocumentReady()
   self.luaUnitFrame:Init(self,  {fScale=1.0, nConsoleVar="hud.myUnitFrameDisplay", bDrawToT=false})
 
   -- setup default positions
-  self.luaUnitFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.25, 1, 0.25, 1}, nOffsets = {0,-324,400,-220}})
-  self.luaVikingTargetFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.75, 1, 0.75, 1}, nOffsets = {-400,-324,0,-220}})
+  self.luaUnitFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.25, 1, 0.25, 1}, nOffsets = {0,-224,400,-120}})
+  self.luaVikingTargetFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.75, 1, 0.75, 1}, nOffsets = {-400,-224,0,-220}})
   self.luaFocusFrame.locDefaultPosition = WindowLocation.new({fPoints = {0, 1, 0, 1}, nOffsets = {30,-454,430,-350}})
 
   self.luaUnitFrame:SetPosition(self.luaUnitFrame.locDefaultPosition)
