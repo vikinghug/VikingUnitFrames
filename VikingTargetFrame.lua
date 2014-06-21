@@ -1361,7 +1361,6 @@ end
 
 local UnitFramesInstance = UnitFrames:new()
 UnitFrames:Init()
-=======
 require "Window"
 require "Unit"
 require "GameLib"
