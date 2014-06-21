@@ -214,7 +214,7 @@ function UnitFrames:OnWindowManagementReady()
 	Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaVikingUnitFrame.wndMainClusterFrame	, strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel")})
 	Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaVikingTargetFrame.wndMainClusterFrame	, strName = Apollo.GetString("OptionsHUD_TargetFrameLabel")})
 	Event_FireGenericEvent("WindowManagementAdd" , {wnd = self.luaVikingFocusFrame.wndMainClusterFrame	, strName = Apollo.GetString("OptionsHUD_FocusTargetLabel")})
-endfunction UnitFrames:OnWindowManagementUpdate(tSettings)	if tSettings and tSettings.wnd and (tSettings.wnd == self.luaVikingUnitFrame.wndMainClusterFrame or tSettings.wnd == self.luaVikingTargetFrame.wndMainClusterFrame or tSettings.wnd == self.luaVikingTargetFrame.luaVikingFocusFrame) then		local bMoveable = tSettings.wnd:IsStyleOn("Moveable")		tSettings.wnd:SetStyle("Sizable", bMoveable)		tSettings.wnd:SetStyle("IgnoreMouse", not bMoveable)	endend
+endfunction UnitFrames:OnWindowManagementUpdate(tSettings)	if tSettings and tSettings.wnd and (tSettings.wnd == self.luaVikingUnitFrame.wndMainClusterFrame or tSettings.wnd == self.luaVikingTargetFrame.wndMainClusterFrame or tSettings.wnd == self.luaVikingFocusFrame.wndMainClusterFrame) then		local bMoveable = tSettings.wnd:IsStyleOn("Moveable")		tSettings.wnd:SetStyle("Sizable", bMoveable)		tSettings.wnd:SetStyle("IgnoreMouse", not bMoveable)	endend
 
 function VikingTargetFrame:new(o)
   o = o or {}
