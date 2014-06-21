@@ -42,7 +42,7 @@ local karDispositionColors =
 {
   [Unit.CodeEnumDisposition.Neutral]  = tColors.lightGrey,
   [Unit.CodeEnumDisposition.Hostile]  = tColors.red,
-  [Unit.CodeEnumDisposition.Friendly] = tColors.green,
+  [Unit.CodeEnumDisposition.Friendly] = tColors.green
 }
 
 local ktDispositionToTTooltip =
