@@ -9,9 +9,6 @@
     <Sprite Name="Gradient128" Cycle="1">
         <Frame Texture="VikingTargetFrame\assets\gradient-128.tga" x0="0" x1="256" x2="256" x3="256" x4="256" x5="256" y0="0" y1="128" y2="128" y3="128" y4="128" y5="128" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
-	<Sprite Name="Gridiant128Reversed" Cycle="1">
-        <Frame Texture="VikingTargetFrame\assets\gradient-128 Reversed.tga" x0="0" x1="256" x2="256" x3="256" x4="256" x5="256" y0="0" y1="128" y2="128" y3="128" y4="128" y5="128" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
-    </Sprite>
     <Sprite Name="Circle36" Cycle="1">
         <Frame Texture="VikingTargetFrame\assets\circle-border-36.tga" x0="0" x1="36" x2="36" x3="36" x4="36" x5="36" y0="0" y1="36" y2="36" y3="36" y4="36" y5="36" Stretchy="1" HotspotX="0" HotspotY="0" Duration="1.000" StartColor="white" EndColor="white"/>
     </Sprite>
