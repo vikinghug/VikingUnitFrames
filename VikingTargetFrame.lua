@@ -125,6 +125,10 @@ local kstrFriendSprite          = "ClientSprites:Icon_Windows_UI_CRB_Friend"
 local kstrAccountFriendSprite   = "ClientSprites:Icon_Windows_UI_CRB_Friend"
 local kstrRivalSprite           = "ClientSprites:Icon_Windows_UI_CRB_Rival"
 
+local settings = {
+  bEnableCastbar = true
+}
+
 function UnitFrames:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -143,13 +147,34 @@ function UnitFrames:OnLoad()
   Apollo.LoadSprites("VikingTargetSprites.xml")
 end
 
+-- Save User Settings
+function UnitFrames:OnSave(eLevel)
+  Print("Saving Settings...")
+  if eLevel ~= GameLib.CodeEnumAddonSaveLevel.Character then return end
+
+  local tSave =
+  {
+    bEnableCastbar = settings.bEnableCastbar
+  }
+  return tSave
+end
+
+
+-- Restore Saved User Settings
+function UnitFrames:OnRestore(eLevel, t)
+  Print("Loading Settings...")
+  if t.bEnableCastbar ~= nil then
+    settings.bEnableCastbar = t.bEnableCastbar
+  end
+end
+
+
 function UnitFrames:OnDocumentReady()
   if  self.xmlDoc == nil then
     return
   end
 
   Apollo.RegisterSlashCommand("focus", "OnFocusSlashCommand", self)
-
   Apollo.RegisterEventHandler("WindowManagementReady", "OnWindowManagementReady", self)
   Apollo.RegisterEventHandler("CharacterCreated", "OnCharacterLoaded", self)
   Apollo.RegisterEventHandler("TargetUnitChanged", "OnTargetUnitChanged", self)
@@ -287,7 +312,6 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
   end
 
   self.nRaidMarkerLeft, self.nRaidMarkerTop, self.nRaidMarkerRight, self.nRaidMarkerBottom = self.wndLargeFrame:FindChild("RaidMarker"):GetAnchorOffsets()
-
   self.nLastCCArmorValue = 0
   self.unitLastTarget = nil
   self.bTargetDead = false
@@ -549,9 +573,6 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   wndFrame:FindChild("ShieldFill"):EnableGlow(nShieldCurr > 0)
   self:SetBarValue(wndFrame:FindChild("ShieldFill"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(wndFrame:FindChild("AbsorbFill"), 0, nAbsorbCurr, nAbsorbMax)
-  -- wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
-  -- wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
-  -- wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
 
   -- Bars
   wndFrame:FindChild("ShieldFill"):Show(nHealthCurr > 0)
@@ -815,7 +836,6 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
     end
 
     self.wndLargeFrame:FindChild("Attachment"):SetSprite("spr_TargetFrame_Frame"..strAttachment..strFlipped)
-    -- self.wndLargeFrame:FindChild("Backer"):SetSprite("spr_TargetFrame_Frame"..strDisposition..strFlipped)
     self.wndLargeFrame:FindChild("HealthSplit"):SetSprite("spr_TargetFrame_HealthSplit"..strDisposition..strFlipped)
 
     if (unitTarget:IsDead() or (unitTarget:IsTagged() and not unitTarget:IsTaggedByMe())) then
@@ -951,7 +971,6 @@ function VikingTargetFrame:SetTargetForClusterFrame(wndFrame, unitTarget, bTarge
       wndFrame:FindChild("TargetModel"):SetTooltip(unitTarget == GameLib.GetPlayerUnit() and "" or strTooltipRank)
 
       if unitTarget:GetArchetype() and wndFrame:FindChild("TargetClassIcon") then
-        wndFrame:FindChild("TargetClassIcon"):SetSprite(unitTarget:GetArchetype().strIcon)
       end
     else
       local nCurHealth = unitTarget:GetHealth() or 0
@@ -979,7 +998,6 @@ end
 
 function VikingTargetFrame:UpdateCastingBar(wndFrame, unitCaster)
   -- Casting Bar Update
-
   local bShowCasting = false
   local bEnableGlow = false
   local nZone = 0
@@ -1000,11 +1018,6 @@ function VikingTargetFrame:UpdateCastingBar(wndFrame, unitCaster)
   local wndCastIcon = wndFrame:FindChild("CastingIcon")
   local wndCastBase = wndFrame:FindChild("CastingBase")
 
-  -- results for GetCastBarType can be:
-  -- Unit.CodeEnumCastBarType.None
-  -- Unit.CodeEnumCastBarType.Normal
-  -- Unit.CodeEnumCastBarType.Telegraph_Backlash
-  -- Unit.CodeEnumCastBarType.Telegraph_Evade
   if unitCaster:ShouldShowCastBar() then
     eType = unitCaster:GetCastBarType()
 
@@ -1034,6 +1047,7 @@ function VikingTargetFrame:UpdateCastingBar(wndFrame, unitCaster)
 
   wndCastFrame:Show(bShowCasting)
   if wndCastProgress ~= nil then
+
     wndCastProgress:Show(bShowCasting)
     wndCastName:Show(bShowCasting)
   end
@@ -1051,6 +1065,7 @@ function VikingTargetFrame:UpdateCastingBar(wndFrame, unitCaster)
       wndCastProgress:EnableGlow(bEnableGlow)
       wndCastName:SetText(strSpellName .. strDuration)
     end
+
   end
 
 end
@@ -1077,6 +1092,7 @@ function VikingTargetFrame:ArrangeClusterMembers()
       self.arClusterFrames[4]:Move(self.nFrameLeft+8+knClusterFrameWidth*2, self.nFrameTop + knClusterFrameVertOffset, knClusterFrameWidth, knClusterFrameHeight)
       self.arClusterFrames[5]:Move(self.nFrameLeft+8+knClusterFrameWidth*3, self.nFrameTop + knClusterFrameVertOffset, knClusterFrameWidth, knClusterFrameHeight)
     end
+
   end
 end
 
@@ -1162,6 +1178,7 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self:SetBarValue(self.wndLargeFrame:FindChild("ShieldCapacityTint"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(self.wndLargeFrame:FindChild("AbsorbCapacityTint"), 0, nAbsorbCurr, nAbsorbMax)
 
+
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetProgress(nHealthCurr);
@@ -1176,31 +1193,6 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):MoveToLocation(self.wndLargeFrame:FindChild("MaxShield"):IsShown() and self.arAbsorbPos or self.arShieldPos)
-
-  -- if not self.wndLargeFrame:FindChild("MaxShield"):IsShown() and not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
-  --   -- reduce by 2
-  --   if self.tParams.bFlipped then
-  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMin, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-  --   else
-  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMin, self.nLFrameBottom)
-  --   end
-  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(false)
-  -- elseif not self.wndLargeFrame:FindChild("MaxShield"):IsShown() or not self.wndLargeFrame:FindChild("MaxAbsorb"):IsShown() then
-  --   -- reduce by 1
-  --   if self.tParams.bFlipped then
-  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthShield, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-  --   else
-  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthShield, self.nLFrameBottom)
-  --   end
-  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
-  -- else
-  --   if self.tParams.bFlipped then
-  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameRight-knFrameWidthMax, self.nLFrameTop, self.nLFrameRight, self.nLFrameBottom)
-  --   else
-  --     -- self.wndLargeFrame:SetAnchorOffsets(self.nLFrameLeft, self.nLFrameTop, self.nLFrameLeft+knFrameWidthMax, self.nLFrameBottom)
-  --   end
-  --   self.wndLargeFrame:FindChild("HealthSplit"):Show(true)
-  -- end
 
   -- String
   local strHealthMax = self:HelperFormatBigNumber(nHealthMax)
@@ -2647,6 +2639,40 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
 		end
 		self.wndLargeFrame:FindChild("AbsorbText"):SetTooltip(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
 	end
+end
+
+
+  --Toggle Visibility based on ui preference
+  if nVisibility == 2 then -- show x/y
+    self.wndLargeFrame:FindChild("HealthText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strHealthCurr, strHealthMax))
+  elseif nVisibility == 3 then --show %
+    self.wndLargeFrame:FindChild("HealthText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nHealthCurr/nHealthMax*100))
+  else --on mouseover
+    self.wndLargeFrame:FindChild("HealthText"):SetText("")
+  end
+  self.wndLargeFrame:FindChild("HealthText"):SetTooltip(string.format("%s: %s / %s (%s)", Apollo.GetString("Innate_Health"), strHealthCurr, strHealthMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nHealthCurr/nHealthMax*100)))
+
+  if nShieldCurr > 0 and nShieldMax > 0 then
+    if nVisibility == 2 then -- show x/y
+      self.wndLargeFrame:FindChild("ShieldText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
+    elseif nVisibility == 3 then --show %
+      self.wndLargeFrame:FindChild("ShieldText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
+    else --on mouseover
+      self.wndLargeFrame:FindChild("ShieldText"):SetText("")
+    end
+    self.wndLargeFrame:FindChild("ShieldText"):SetTooltip(string.format("%s: %s / %s (%s)", Apollo.GetString("Character_ShieldLabel"), strShieldCurr, strShieldMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100)))
+  end
+
+  if nAbsorbCurr > 0 and nAbsorbMax > 0 then
+    if nVisibility == 2 then -- show x/y
+      self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
+    elseif nVisibility == 3 then --show %
+      self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
+    else --on mouseover
+      self.wndLargeFrame:FindChild("AbsorbText"):SetText("")
+    end
+    self.wndLargeFrame:FindChild("AbsorbText"):SetTooltip(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
+  end
 end
 
 
