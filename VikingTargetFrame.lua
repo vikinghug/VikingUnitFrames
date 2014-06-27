@@ -5,6 +5,8 @@ require "Apollo"
 require "PathMission"
 require "P2PTrading"
 
+local VL, VColor
+
 local VikingTargetFrame = {}
 local UnitFrames = {}
 
@@ -25,24 +27,13 @@ local kstrScalingHex = "ffffbf80"
 local kcrScalingCColor = CColor.new(1.0, 191/255, 128/255, 0.7)
 
 -- let's create some member variables
-local tColors = {
-  black       = ApolloColor.new("ff201e2d"),
-  white       = ApolloColor.new("ffffffff"),
-  lightGrey   = ApolloColor.new("ffbcb7da"),
-  green       = ApolloColor.new("cc06ff5e"),
-  yellow      = ApolloColor.new("ffffd161"),
-  lightPurple = ApolloColor.new("ff645f7e"),
-  purple      = ApolloColor.new("ff28253a"),
-  red         = ApolloColor.new("ffe05757"),
-  blue        = ApolloColor.new("cc49e8ee")
-}
 
 
 local karDispositionColors =
 {
-  [Unit.CodeEnumDisposition.Neutral]  = tColors.lightGrey,
-  [Unit.CodeEnumDisposition.Hostile]  = tColors.red,
-  [Unit.CodeEnumDisposition.Friendly] = tColors.green,
+  [Unit.CodeEnumDisposition.Neutral]  = "lightGrey",
+  [Unit.CodeEnumDisposition.Hostile]  = "red",
+  [Unit.CodeEnumDisposition.Friendly] = "green",
 }
 
 local ktDispositionToTTooltip =
@@ -74,12 +65,12 @@ local karFactionToString = --Used for the Attachment Frame Sprites
 }
 
 -- Todo: break these out onto options
-local kcrGroupTextColor                = ApolloColor.new("crayBlizzardBlue")
+local kcrGroupTextColor                = "blue"
 local kcrFlaggedFriendlyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 local kcrDefaultGuildmemberTextColor   = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 local kcrHostileEnemyTextColor         = karDispositionColors[Unit.CodeEnumDisposition.Hostile]
 local kcrAggressiveEnemyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Neutral]
-local kcrNeutralEnemyTextColor         = ApolloColor.new("crayDenim")
+local kcrNeutralEnemyTextColor         = "yellow"
 local kcrDefaultUnflaggedAllyTextColor = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 
 -- TODO:Localize all of these
@@ -138,7 +129,7 @@ function UnitFrames:new(o)
 end
 
 function UnitFrames:Init()
-  Apollo.RegisterAddon(self)
+  Apollo.RegisterAddon(self, false, "", {"VikingLibrary"})
 end
 
 function UnitFrames:OnLoad()
@@ -158,6 +149,7 @@ function UnitFrames:OnSave(eLevel)
   }
   return tSave
 end
+
 
 -- Restore Saved User Settings
 function UnitFrames:OnRestore(eLevel, t)
@@ -210,6 +202,9 @@ end
 
 function UnitFrames:OnCharacterLoaded()
   local unitPlayer = GameLib.GetPlayerUnit()
+
+  VL = Apollo.GetAddon("VikingLibrary")
+  VColor = VL.color
 
   if unitPlayer ~= nil then
     local unitTarget = unitPlayer:GetTarget()
@@ -538,7 +533,7 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
     return
   end
 
-  wndFrame:FindChild("TargetName"):SetTextColor(karDispositionColors[eDisposition])
+  wndFrame:FindChild("TargetName"):SetTextColor(VColor(karDispositionColors[eDisposition]))
   if unitToT:GetType() == "Player" then
     if eDisposition == Unit.CodeEnumDisposition.Friendly or unitToT:IsThePlayer() then
       if unitToT:IsPvpFlagged() then
@@ -560,7 +555,7 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
       end
     end
 
-    wndFrame:FindChild("TargetName"):SetTextColor(crColorToUse)
+    wndFrame:FindChild("TargetName"):SetTextColor(VColor(crColorToUse))
   end
   if wndFrame:FindChild("TargetModel") then
     wndFrame:FindChild("TargetModel"):SetCostume(unitToT)
@@ -587,9 +582,8 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
     nAbsorbCurr = unitToT:GetAbsorptionValue() -- Since it doesn't clear when the buff drops off
   end
   local nTotalMax = nHealthMax + nShieldMax + nAbsorbMax
-  Print("Test: ")
+
   local nVulnerabilityTime = unitToT:GetCCStateTimeRemaining(Unit.CodeEnumCCState.Vulnerability)
-  Print(nVulnerabilityTime)
 
   local nPointHealthRight = self.nAltHealthLeft + (self.nAltHealthWidth * (nHealthCurr / nTotalMax)) -- applied to the difference between L and R
   local nPointShieldRight = self.nAltHealthLeft + (self.nAltHealthWidth * ((nHealthCurr + nShieldMax) / nTotalMax))
@@ -879,7 +873,7 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
     local strDisposition = "Friendly"
     local strAttachment = ""
 
-    wndFrame:FindChild("TargetName"):SetTextColor(karDispositionColors[eDisposition])
+    wndFrame:FindChild("TargetName"):SetTextColor(VColor(karDispositionColors[eDisposition]))
 
     if eDisposition == Unit.CodeEnumDisposition.Hostile then
       strDisposition = "Hostile"
@@ -989,7 +983,7 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
         end
       end
       wndFrame:FindChild("GroupSizeMark"):Show(false)
-      wndFrame:FindChild("TargetName"):SetTextColor(crColorToUse)
+      wndFrame:FindChild("TargetName"):SetTextColor(VColor(crColorToUse))
     else -- NPC
       wndFrame:FindChild("GroupSizeMark"):Show(unitTarget:GetGroupValue() > 0)
       wndFrame:FindChild("GroupSizeMark"):SetText(unitTarget:GetGroupValue())
@@ -1238,36 +1232,36 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   end
   local nTotalMax = nHealthMax + nShieldMax + nAbsorbMax
 
-  local highHealthColor = tColors.green
-  local healthColor = tColors.yellow
-  local lowHealthColor = tColors.red
-  local shieldColor = tColors.blue
-  local absorbColor = tColors.white
+  local highHealthColor = VColor("green")
+  local healthColor = VColor("yellow")
+  local lowHealthColor = VColor("red")
+  local shieldColor = VColor("blue")
+  local absorbColor = VColor("white")
   if self.vikingSettings then
     if self.tParams.nConsoleVar == "hud.focusTargetFrameDisplay" then
-      highHealthColor = self.vikingSettings:CColorToString(self.db.Focus.HighHealthColor)
-      healthColor = self.vikingSettings:CColorToString(self.db.Focus.HealthColor)
-      lowHealthColor = self.vikingSettings:CColorToString(self.db.Focus.LowHealthColor)
-      shieldColor = self.vikingSettings:CColorToString(self.db.Focus.ShieldColor)
-      absorbColor = self.vikingSettings:CColorToString(self.db.Focus.AbsorbColor)
+      highHealthColor = self.db.Focus.HighHealthColor
+      healthColor = self.db.Focus.HealthColor
+      lowHealthColor = self.db.Focus.LowHealthColor
+      shieldColor = self.db.Focus.ShieldColor
+      absorbColor = self.db.Focus.AbsorbColor
     elseif self.tParams.nConsoleVar == "hud.myUnitFrameDisplay" then
-      highHealthColor = self.vikingSettings:CColorToString(self.db.Player.HighHealthColor)
-      healthColor = self.vikingSettings:CColorToString(self.db.Player.HealthColor)
-      lowHealthColor = self.vikingSettings:CColorToString(self.db.Player.LowHealthColor)
-      shieldColor = self.vikingSettings:CColorToString(self.db.Player.ShieldColor)
-      absorbColor = self.vikingSettings:CColorToString(self.db.Player.AbsorbColor)
+      highHealthColor = self.db.Player.HighHealthColor
+      healthColor = self.db.Player.HealthColor
+      lowHealthColor = self.db.Player.LowHealthColor
+      shieldColor = self.db.Player.ShieldColor
+      absorbColor = self.db.Player.AbsorbColor
     else
-      highHealthColor = self.vikingSettings:CColorToString(self.db.Target.HighHealthColor)
-      healthColor = self.vikingSettings:CColorToString(self.db.Target.HealthColor)
-      lowHealthColor = self.vikingSettings:CColorToString(self.db.Target.LowHealthColor)
-      shieldColor = self.vikingSettings:CColorToString(self.db.Target.ShieldColor)
-      absorbColor = self.vikingSettings:CColorToString(self.db.Target.AbsorbColor)
+      highHealthColor = self.db.Target.HighHealthColor
+      healthColor = self.db.Target.HealthColor
+      lowHealthColor = self.db.Target.LowHealthColor
+      shieldColor = self.db.Target.ShieldColor
+      absorbColor = self.db.Target.AbsorbColor
     end
   end
 
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
   if unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    wndHealth:SetBarColor(tColors.lightPurple)
+    wndHealth:SetBarColor(VColor("lightPurple"))
 
   elseif nHealthCurr / nHealthMax <= knHealthRed then
     wndHealth:SetBarColor(lowHealthColor)
@@ -1305,6 +1299,7 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
     self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
     self.wndLargeFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 1)
   end
+
 
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);
