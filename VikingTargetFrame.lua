@@ -65,12 +65,12 @@ local karFactionToString = --Used for the Attachment Frame Sprites
 }
 
 -- Todo: break these out onto options
-local kcrGroupTextColor                = ApolloColor.new("crayBlizzardBlue")
+local kcrGroupTextColor                = "blue"
 local kcrFlaggedFriendlyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 local kcrDefaultGuildmemberTextColor   = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 local kcrHostileEnemyTextColor         = karDispositionColors[Unit.CodeEnumDisposition.Hostile]
 local kcrAggressiveEnemyTextColor      = karDispositionColors[Unit.CodeEnumDisposition.Neutral]
-local kcrNeutralEnemyTextColor         = ApolloColor.new("crayDenim")
+local kcrNeutralEnemyTextColor         = "yellow"
 local kcrDefaultUnflaggedAllyTextColor = karDispositionColors[Unit.CodeEnumDisposition.Friendly]
 
 -- TODO:Localize all of these
