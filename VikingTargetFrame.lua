@@ -159,7 +159,6 @@ function UnitFrames:OnSave(eLevel)
   return tSave
 end
 
-
 -- Restore Saved User Settings
 function UnitFrames:OnRestore(eLevel, t)
   Print("Loading Settings...")
@@ -286,6 +285,11 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
     bDrawToT    = tParams.bDrawToT == nil and false or tParams.bDrawToT,
     bFlipped    = tParams.bFlipped == nil and false or tParams.bFlipped
   }
+
+  self.vikingSettings = Apollo.GetAddon("VikingSettings")
+  if self.vikingSettings then
+    self.db = self.vikingSettings.db.char.VikingTargetFrame
+  end
 
   self.wndMainClusterFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, tParams.bFlipped and "ClusterTargetFlipped" or "ClusterTarget", "FixedHudStratumLow", self)
   self.arClusterFrames =
@@ -1105,7 +1109,18 @@ function VikingTargetFrame:UpdateCastingBar(wndFrame, unitCaster)
       strIcon = ""
     end
 
-    if eType ~= Unit.CodeEnumCastBarType.None and settings.bEnableCastbar then
+    local EnableCastbar = settings.bEnableCastbar
+    if self.vikingSettings then
+      if self.tParams.nConsoleVar == "hud.focusTargetFrameDisplay" then
+        EnableCastbar = self.db.Focus.EnableCastbar
+      elseif self.tParams.nConsoleVar == "hud.myUnitFrameDisplay" then
+        EnableCastbar = self.db.Player.EnableCastbar
+      else
+        EnableCastbar = self.db.Target.EnableCastbar
+      end
+    end
+
+    if eType ~= Unit.CodeEnumCastBarType.None and EnableCastbar then
 
       bShowCasting = true
       bEnableGlow = true
@@ -1223,21 +1238,43 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   end
   local nTotalMax = nHealthMax + nShieldMax + nAbsorbMax
 
-  local strFlipped = self.tParams.bFlipped and "Flipped" or ""
+  local highHealthColor = tColors.green
+  local healthColor = tColors.yellow
+  local lowHealthColor = tColors.red
+  local shieldColor = tColors.blue
+  local absorbColor = tColors.white
+  if self.vikingSettings then
+    if self.tParams.nConsoleVar == "hud.focusTargetFrameDisplay" then
+      highHealthColor = self.vikingSettings:CColorToString(self.db.Focus.HighHealthColor)
+      healthColor = self.vikingSettings:CColorToString(self.db.Focus.HealthColor)
+      lowHealthColor = self.vikingSettings:CColorToString(self.db.Focus.LowHealthColor)
+      shieldColor = self.vikingSettings:CColorToString(self.db.Focus.ShieldColor)
+      absorbColor = self.vikingSettings:CColorToString(self.db.Focus.AbsorbColor)
+    elseif self.tParams.nConsoleVar == "hud.myUnitFrameDisplay" then
+      highHealthColor = self.vikingSettings:CColorToString(self.db.Player.HighHealthColor)
+      healthColor = self.vikingSettings:CColorToString(self.db.Player.HealthColor)
+      lowHealthColor = self.vikingSettings:CColorToString(self.db.Player.LowHealthColor)
+      shieldColor = self.vikingSettings:CColorToString(self.db.Player.ShieldColor)
+      absorbColor = self.vikingSettings:CColorToString(self.db.Player.AbsorbColor)
+    else
+      highHealthColor = self.vikingSettings:CColorToString(self.db.Target.HighHealthColor)
+      healthColor = self.vikingSettings:CColorToString(self.db.Target.HealthColor)
+      lowHealthColor = self.vikingSettings:CColorToString(self.db.Target.LowHealthColor)
+      shieldColor = self.vikingSettings:CColorToString(self.db.Target.ShieldColor)
+      absorbColor = self.vikingSettings:CColorToString(self.db.Target.AbsorbColor)
+    end
+  end
+
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
   if unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillVulernable"..strFlipped)
     wndHealth:SetBarColor(tColors.lightPurple)
 
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillRed"..strFlipped)
-    wndHealth:SetBarColor(tColors.red)
+    wndHealth:SetBarColor(lowHealthColor)
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillYellow"..strFlipped)
-    wndHealth:SetBarColor(tColors.yellow)
+    wndHealth:SetBarColor(healthColor)
   else
-    -- wndHealth:SetFullSprite("spr_TargetFrame_HealthFillGreen"..strFlipped)
-    wndHealth:SetBarColor(tColors.green)
+    wndHealth:SetBarColor(highHealthColor)
   end
 
   wndHealth:SetStyleEx("EdgeGlow", nHealthCurr / nHealthMax < 0.96)
@@ -1269,17 +1306,17 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
     self.wndLargeFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 1)
   end
 
-
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetProgress(nHealthCurr);
 
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetMax(nShieldMax);
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetProgress(nShieldCurr);
-  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(tColors.blue);
+  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(shieldColor);
 
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetMax(nAbsorbMax);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
+  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(absorbColor);
 
   self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
