@@ -101,12 +101,12 @@ local ktRankDescriptions =
 
 local karClassToIcon =
 {
-  [GameLib.CodeEnumClass.Warrior]       = "VikingTargetSprites:ClassWarrior",
-  [GameLib.CodeEnumClass.Engineer]      = "VikingTargetSprites:ClassEngineer",
-  [GameLib.CodeEnumClass.Esper]         = "VikingTargetSprites:ClassEsper",
-  [GameLib.CodeEnumClass.Medic]         = "VikingTargetSprites:ClassMedic",
-  [GameLib.CodeEnumClass.Stalker]       = "VikingTargetSprites:ClassStalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "VikingTargetSprites:ClassSpellslinger",
+  [GameLib.CodeEnumClass.Warrior]       = "IconSprites:Icon_Windows_UI_CRB_Warrior",
+  [GameLib.CodeEnumClass.Engineer]      = "IconSprites:Icon_Windows_UI_CRB_Engineer",
+  [GameLib.CodeEnumClass.Esper]         = "IconSprites:Icon_Windows_UI_CRB_Esper",
+  [GameLib.CodeEnumClass.Medic]         = "IconSprites:Icon_Windows_UI_CRB_Medic",
+  [GameLib.CodeEnumClass.Stalker]       = "IconSprites:Icon_Windows_UI_CRB_Stalker",
+  [GameLib.CodeEnumClass.Spellslinger]  = "IconSprites:Icon_Windows_UI_CRB_Spellslinger",
 }
 
 local kstrTooltipBodyColor      = "ffc0c0c0"
@@ -135,7 +135,6 @@ end
 function UnitFrames:OnLoad()
   self.xmlDoc = XmlDoc.CreateFromFile("VikingTargetFrame.xml")
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
-  Apollo.LoadSprites("VikingTargetSprites.xml")
 end
 
 -- Save User Settings
@@ -471,6 +470,18 @@ end
 
 function VikingTargetFrame:SetTarget(unitTarget)
   self.unitTarget = unitTarget
+
+  -- Adjust Position if Target has no Shield
+  if unitTarget then
+    if unitTarget:GetShieldCapacityMax() > 0 then
+      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
+      self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 1, 1, 1)
+    else
+      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
+      self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 0.77, 1, 0.77)
+    end
+  end
+
   self:OnUpdate()
 end
 
@@ -1299,14 +1310,6 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   -- Resize
   self:SetBarValue(self.wndLargeFrame:FindChild("ShieldCapacityTint"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(self.wndLargeFrame:FindChild("AbsorbCapacityTint"), 0, nAbsorbCurr, nAbsorbMax)
-  if nShieldCurr > 0 and nShieldMax > 0 then
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
-    self.wndLargeFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 0.77)
-  else
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
-    self.wndLargeFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 1)
-  end
-
 
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);

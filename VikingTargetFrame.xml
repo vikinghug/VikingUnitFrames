@@ -171,7 +171,6 @@
             </Control>
         </Control>
     </Form>
-    <SpriteFile Name="VikingSprites.xml"/>
     <Form Class="Window" Name="ClusterTargetFlipped" LAnchorPoint="0.5" LAnchorOffset="-125" TAnchorPoint="1" TAnchorOffset="-264" RAnchorPoint="0.5" RAnchorOffset="125" BAnchorPoint="1" BAnchorOffset="-176" Moveable="0" BGColor="white" TextColor="white" Border="0" Overlapped="0" Template="CRB_Default" HideInEditor="0" IgnoreMouse="1" Visible="0" TransitionShowHide="0" TooltipColor="" Tooltip="" Text="" TextId="" RequireMetaKeyToMove="0">
         <Event Name="MouseButtonDown" Function="OnMouseButtonDown"/>
         <Event Name="QueryDragDrop" Function="OnQueryDragDrop"/>
