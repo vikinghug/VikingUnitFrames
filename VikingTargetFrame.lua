@@ -101,12 +101,12 @@ local ktRankDescriptions =
 
 local karClassToIcon =
 {
-  [GameLib.CodeEnumClass.Warrior]       = "IconSprites:Icon_Windows_UI_CRB_Warrior",
-  [GameLib.CodeEnumClass.Engineer]      = "IconSprites:Icon_Windows_UI_CRB_Engineer",
-  [GameLib.CodeEnumClass.Esper]         = "IconSprites:Icon_Windows_UI_CRB_Esper",
-  [GameLib.CodeEnumClass.Medic]         = "IconSprites:Icon_Windows_UI_CRB_Medic",
-  [GameLib.CodeEnumClass.Stalker]       = "IconSprites:Icon_Windows_UI_CRB_Stalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "IconSprites:Icon_Windows_UI_CRB_Spellslinger",
+  [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
+  [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
+  [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
+  [GameLib.CodeEnumClass.Medic]         = "VikingSprites:ClassMedic",
+  [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:ClassStalker",
+  [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:ClassSpellslinger",
 }
 
 local kstrTooltipBodyColor      = "ffc0c0c0"
