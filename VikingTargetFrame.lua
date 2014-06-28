@@ -473,7 +473,7 @@ function VikingTargetFrame:SetTarget(unitTarget)
 
   -- Adjust Position if Target has no Shield
   if unitTarget then
-    if not unitTarget:GetShieldCapacityMax() == nil and unitTarget:GetShieldCapacityMax() > 0 then
+    if unitTarget:GetShieldCapacity() > 0 and unitTarget:GetShieldCapacityMax() > 1 then 
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
       self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 1, 1, 1)
     else
