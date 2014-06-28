@@ -1235,47 +1235,40 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   local highHealthColor = VColor("green")
   local healthColor = VColor("yellow")
   local lowHealthColor = VColor("red")
-  local VulnerabilityColor = VColor("lightPurple")
   local shieldColor = VColor("blue")
   local absorbColor = VColor("white")
-  local HealthColoredByVulnerability = false
   if self.vikingSettings then
     if self.tParams.nConsoleVar == "hud.focusTargetFrameDisplay" then
       highHealthColor = self.db.Focus.HighHealthColor
       healthColor = self.db.Focus.HealthColor
       lowHealthColor = self.db.Focus.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
       shieldColor = self.db.Focus.ShieldColor
       absorbColor = self.db.Focus.AbsorbColor
-      HealthColoredByVulnerability = self.db.Focus.HealthColoredByVulnerability
     elseif self.tParams.nConsoleVar == "hud.myUnitFrameDisplay" then
       highHealthColor = self.db.Player.HighHealthColor
       healthColor = self.db.Player.HealthColor
       lowHealthColor = self.db.Player.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
       shieldColor = self.db.Player.ShieldColor
       absorbColor = self.db.Player.AbsorbColor
-      HealthColoredByVulnerability = self.db.Player.HealthColoredByVulnerability
     else
       highHealthColor = self.db.Target.HighHealthColor
       healthColor = self.db.Target.HealthColor
       lowHealthColor = self.db.Target.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
       shieldColor = self.db.Target.ShieldColor
       absorbColor = self.db.Target.AbsorbColor
-      HealthColoredByVulnerability = self.db.Target.HealthColoredByVulnerability
     end
   end
 
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
-  if HealthColoredByVulnerability and unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    wndHealth:SetBarColor(VulnerabilityColor or VColor("lightPurple"))
+  if unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
+    wndHealth:SetBarColor(VColor("lightPurple"))
+
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    wndHealth:SetBarColor(lowHealthColor or VColor("red"))
+    wndHealth:SetBarColor(lowHealthColor)
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    wndHealth:SetBarColor(healthColor or VColor("yellow"))
+    wndHealth:SetBarColor(healthColor)
   else
-    wndHealth:SetBarColor(highHealthColor or VColor("green"))
+    wndHealth:SetBarColor(highHealthColor)
   end
 
   wndHealth:SetStyleEx("EdgeGlow", nHealthCurr / nHealthMax < 0.96)
@@ -1314,11 +1307,11 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
 
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetMax(nShieldMax);
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetProgress(nShieldCurr);
-  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(shieldColor or VColor("blue"));
+  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(shieldColor);
 
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetMax(nAbsorbMax);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
-  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(absorbColor or VColor("white"));
+  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(absorbColor);
 
   self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
