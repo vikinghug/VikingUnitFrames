@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <Forms>
+    <SpriteFile Name="..\VikingLibrary\VikingSprites.xml"/>
     <Form Class="Window" Name="SimpleTargetFrame" LAnchorPoint="0.5" LAnchorOffset="-136" TAnchorPoint="1" TAnchorOffset="-371" RAnchorPoint="0.5" RAnchorOffset="137" BAnchorPoint="1" BAnchorOffset="-300" Moveable="1" Border="0" Template="" Picture="1" BGColor="white" TextColor="white" Overlapped="1" UseTemplateBG="0" HideInEditor="0" Visible="0" TooltipColor="" Tooltip="" RelativeToClient="1" Sprite="HUD_TargetFrame:spr_TargetFrame_Simple" DT_VCENTER="0">
         <Control Class="Window" Name="TargetName" LAnchorPoint="0" LAnchorOffset="50" TAnchorPoint="0" TAnchorOffset="0" RAnchorPoint="1" RAnchorOffset="-50" BAnchorPoint="1" BAnchorOffset="-4" NewControlDepth="1" NoClip="0" Font="CRB_HeaderMedium" DT_CENTER="1" DT_VCENTER="1" AutoScaleText="0" BGColor="white" TextColor="UI_TextHoloTitle" TextId="CRB_TargetName" TooltipColor="" Tooltip="" Template="" IgnoreMouse="1" RelativeToClient="1" AutoScaleTextOff="1"/>
         <Control Class="Window" LAnchorPoint="0" LAnchorOffset="-36" TAnchorPoint=".5" TAnchorOffset="-12" RAnchorPoint="0" RAnchorOffset="-12" BAnchorPoint=".5" BAnchorOffset="12" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="TargetGoalPanel" BGColor="white" TextColor="white" TooltipColor="" Border="0" IgnoreMouse="1" TextId="" NoClip="1"/>
@@ -171,7 +172,6 @@
             </Control>
         </Control>
     </Form>
-    <SpriteFile Name="VikingSprites.xml"/>
     <Form Class="Window" Name="ClusterTargetFlipped" LAnchorPoint="0.5" LAnchorOffset="-125" TAnchorPoint="1" TAnchorOffset="-264" RAnchorPoint="0.5" RAnchorOffset="125" BAnchorPoint="1" BAnchorOffset="-176" Moveable="0" BGColor="white" TextColor="white" Border="0" Overlapped="0" Template="CRB_Default" HideInEditor="0" IgnoreMouse="1" Visible="0" TransitionShowHide="0" TooltipColor="" Tooltip="" Text="" TextId="" RequireMetaKeyToMove="0">
         <Event Name="MouseButtonDown" Function="OnMouseButtonDown"/>
         <Event Name="QueryDragDrop" Function="OnQueryDragDrop"/>
