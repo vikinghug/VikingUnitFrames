@@ -149,7 +149,6 @@ function UnitFrames:OnSave(eLevel)
   return tSave
 end
 
-
 -- Restore Saved User Settings
 function UnitFrames:OnRestore(eLevel, t)
   Print("Loading Settings...")
@@ -285,7 +284,8 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
     self.db = self.vikingSettings.db.char.VikingTargetFrame
   end
 
-  self.wndMainClusterFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, tParams.bFlipped and "ClusterTargetFlipped" or "ClusterTarget", "", self)
+  self.wndMainClusterFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, tParams.bFlipped and "ClusterTargetFlipped" or "ClusterTarget", "FixedHudStratumLow", self)
+
   self.arClusterFrames =
   {
     self.wndMainClusterFrame,
@@ -1308,6 +1308,14 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   -- Resize
   self:SetBarValue(self.wndLargeFrame:FindChild("ShieldCapacityTint"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(self.wndLargeFrame:FindChild("AbsorbCapacityTint"), 0, nAbsorbCurr, nAbsorbMax)
+
+  if nShieldCurr > 0 and nShieldMax > 0 then
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
+    self.wndLargeFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 0.77)
+  else
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
+    self.wndLargeFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 1)
+  end
 
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);
