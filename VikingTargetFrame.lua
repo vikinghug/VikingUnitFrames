@@ -182,8 +182,8 @@ function UnitFrames:OnDocumentReady()
   self.luaVikingUnitFrame:Init(self,  {fScale=1.0, nConsoleVar="hud.myUnitFrameDisplay", bDrawClusters=true, bDrawToT=false})
 
   -- setup default positions
-  self.luaVikingUnitFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {-350,-288,-100,-200}})
-  self.luaVikingTargetFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {100,-288,350,-200}})
+  self.luaVikingUnitFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {-350,-204,-100,-116}})
+  self.luaVikingTargetFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {100,-204,350,-116}})
   self.luaVikingFocusFrame.locDefaultPosition = WindowLocation.new({fPoints = {0, 0.5, 0, 0.5}, nOffsets = {10,-44,260,44}})
 
   self.luaVikingUnitFrame:SetPosition(self.luaVikingUnitFrame.locDefaultPosition)
@@ -285,7 +285,7 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
     self.db = self.vikingSettings.db.char.VikingTargetFrame
   end
 
-  self.wndMainClusterFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, tParams.bFlipped and "ClusterTargetFlipped" or "ClusterTarget", "FixedHudStratumLow", self)
+  self.wndMainClusterFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, tParams.bFlipped and "ClusterTargetFlipped" or "ClusterTarget", "", self)
   self.arClusterFrames =
   {
     self.wndMainClusterFrame,
@@ -305,12 +305,12 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
   self.wndToTFrame:Show(false)
   self.arClusterFrames[1]:ArrangeChildrenHorz(1)
 
-  self.wndAssistFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "AssistTarget", "FixedHudStratum", self)
+  self.wndAssistFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "AssistTarget", "", self)
   self.wndAssistFrame:Show(false, true)
   self.nAltHealthLeft, self.nAltHealthTop, self.nAltHealthRight, self.nAltHealthBottom = self.wndAssistFrame:FindChild("MaxHealth"):GetAnchorOffsets()
   self.nAltHealthWidth = self.nAltHealthRight - self.nAltHealthLeft
 
-  self.wndSimpleFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "SimpleTargetFrame", "FixedHudStratum", self)
+  self.wndSimpleFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "SimpleTargetFrame", "", self)
   self.wndSimpleFrame:Show(false)
 
   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -473,12 +473,10 @@ function VikingTargetFrame:SetTarget(unitTarget)
 
   -- Adjust Position if Target has no Shield
   if unitTarget then
-    if unitTarget:GetShieldCapacityMax() > 0 then
+    if unitTarget:GetShieldCapacityMax() ~= nil and unitTarget:GetShieldCapacityMax() > 0 then
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
-      self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 1, 1, 1)
     else
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
-      self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 0.77, 1, 0.77)
     end
   end
 
@@ -1243,50 +1241,50 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   end
   local nTotalMax = nHealthMax + nShieldMax + nAbsorbMax
 
-  local highHealthColor = VColor("green")
-  local healthColor = VColor("yellow")
-  local lowHealthColor = VColor("red")
-  local VulnerabilityColor = VColor("lightPurple")
-  local shieldColor = VColor("blue")
-  local absorbColor = VColor("white")
+  local cHighHealthColor = VColor("green")
+  local cHealthColor = VColor("yellow")
+  local cLowHealthColor = VColor("red")
+  local cVulnerabilityColor = VColor("lightPurple")
+  local cShieldColor = VColor("blue")
+  local cAbsorbColor = VColor("white")
   local HealthColoredByVulnerability = false
   if self.vikingSettings then
     if self.tParams.nConsoleVar == "hud.focusTargetFrameDisplay" then
-      highHealthColor = self.db.Focus.HighHealthColor
-      healthColor = self.db.Focus.HealthColor
-      lowHealthColor = self.db.Focus.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
-      shieldColor = self.db.Focus.ShieldColor
-      absorbColor = self.db.Focus.AbsorbColor
+      cHighHealthColor = self.db.Focus.HighHealthColor
+      cHealthColor = self.db.Focus.HealthColor
+      cLowHealthColor = self.db.Focus.LowHealthColor
+      cVulnerabilityColor = self.db.Focus.cVulnerabilityColor
+      cShieldColor = self.db.Focus.ShieldColor
+      cAbsorbColor = self.db.Focus.AbsorbColor
       HealthColoredByVulnerability = self.db.Focus.HealthColoredByVulnerability
     elseif self.tParams.nConsoleVar == "hud.myUnitFrameDisplay" then
-      highHealthColor = self.db.Player.HighHealthColor
-      healthColor = self.db.Player.HealthColor
-      lowHealthColor = self.db.Player.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
-      shieldColor = self.db.Player.ShieldColor
-      absorbColor = self.db.Player.AbsorbColor
+      cHighHealthColor = self.db.Player.HighHealthColor
+      cHealthColor = self.db.Player.HealthColor
+      cLowHealthColor = self.db.Player.LowHealthColor
+      cVulnerabilityColor = self.db.Focus.cVulnerabilityColor
+      cShieldColor = self.db.Player.ShieldColor
+      cAbsorbColor = self.db.Player.AbsorbColor
       HealthColoredByVulnerability = self.db.Player.HealthColoredByVulnerability
     else
-      highHealthColor = self.db.Target.HighHealthColor
-      healthColor = self.db.Target.HealthColor
-      lowHealthColor = self.db.Target.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
-      shieldColor = self.db.Target.ShieldColor
-      absorbColor = self.db.Target.AbsorbColor
+      cHighHealthColor = self.db.Target.HighHealthColor
+      cHealthColor = self.db.Target.HealthColor
+      cLowHealthColor = self.db.Target.LowHealthColor
+      cVulnerabilityColor = self.db.Focus.cVulnerabilityColor
+      cShieldColor = self.db.Target.ShieldColor
+      cAbsorbColor = self.db.Target.AbsorbColor
       HealthColoredByVulnerability = self.db.Target.HealthColoredByVulnerability
     end
   end
 
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
   if HealthColoredByVulnerability and unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    wndHealth:SetBarColor(VulnerabilityColor or VColor("lightPurple"))
+    wndHealth:SetBarColor(cVulnerabilityColor or VColor("lightPurple"))
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    wndHealth:SetBarColor(lowHealthColor or VColor("red"))
+    wndHealth:SetBarColor(cLowHealthColor or VColor("red"))
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    wndHealth:SetBarColor(healthColor or VColor("yellow"))
+    wndHealth:SetBarColor(cHealthColor or VColor("yellow"))
   else
-    wndHealth:SetBarColor(highHealthColor or VColor("green"))
+    wndHealth:SetBarColor(cHighHealthColor or VColor("green"))
   end
 
   wndHealth:SetStyleEx("EdgeGlow", nHealthCurr / nHealthMax < 0.96)
@@ -1317,11 +1315,11 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
 
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetMax(nShieldMax);
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetProgress(nShieldCurr);
-  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(shieldColor or VColor("blue"));
+  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(cShieldColor or VColor("blue"));
 
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetMax(nAbsorbMax);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
-  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(absorbColor or VColor("white"));
+  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(cAbsorbColor or VColor("white"));
 
   self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
