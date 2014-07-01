@@ -251,6 +251,7 @@ function UnitFrames:OnWindowManagementUpdate(tSettings)
     local bMoveable = tSettings.wnd:IsStyleOn("Moveable")
 
     tSettings.wnd:SetStyle("Sizable", bMoveable)
+    tSettings.wnd:SetStyle("RequireMetaKeyToMove", bMoveable)
     tSettings.wnd:SetStyle("IgnoreMouse", not bMoveable)
   end
 end
