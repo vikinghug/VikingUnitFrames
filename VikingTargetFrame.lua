@@ -473,15 +473,6 @@ end
 function VikingTargetFrame:SetTarget(unitTarget)
   self.unitTarget = unitTarget
 
-  -- Adjust Position if Target has no Shield
-  if unitTarget then
-    if unitTarget:GetShieldCapacityMax() ~= nil and unitTarget:GetShieldCapacityMax() > 0 then
-      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
-    else
-      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
-    end
-  end
-
   self:OnUpdate()
 end
 
