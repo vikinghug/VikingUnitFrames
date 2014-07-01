@@ -22,6 +22,7 @@ local knHealthRed                      = 0.3
 local knHealthYellow                   = 0.5
 local knWindowStayOnScreenWidthOffset  = 200
 local knWindowStayOnScreenHeightOffset = 200
+local bAbsorb                          = false
 
 local kstrScalingHex = "ffffbf80"
 local kcrScalingCColor = CColor.new(1.0, 191/255, 128/255, 0.7)
@@ -149,7 +150,6 @@ function UnitFrames:OnSave(eLevel)
   return tSave
 end
 
-
 -- Restore Saved User Settings
 function UnitFrames:OnRestore(eLevel, t)
   Print("Loading Settings...")
@@ -182,8 +182,8 @@ function UnitFrames:OnDocumentReady()
   self.luaVikingUnitFrame:Init(self,  {fScale=1.0, nConsoleVar="hud.myUnitFrameDisplay", bDrawClusters=true, bDrawToT=false})
 
   -- setup default positions
-  self.luaVikingUnitFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {-350,-288,-100,-200}})
-  self.luaVikingTargetFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {100,-288,350,-200}})
+  self.luaVikingUnitFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {-350,-204,-100,-116}})
+  self.luaVikingTargetFrame.locDefaultPosition = WindowLocation.new({fPoints = {0.5, 1, 0.5, 1}, nOffsets = {100,-204,350,-116}})
   self.luaVikingFocusFrame.locDefaultPosition = WindowLocation.new({fPoints = {0, 0.5, 0, 0.5}, nOffsets = {10,-44,260,44}})
 
   self.luaVikingUnitFrame:SetPosition(self.luaVikingUnitFrame.locDefaultPosition)
@@ -252,6 +252,7 @@ function UnitFrames:OnWindowManagementUpdate(tSettings)
     local bMoveable = tSettings.wnd:IsStyleOn("Moveable")
 
     tSettings.wnd:SetStyle("Sizable", bMoveable)
+    tSettings.wnd:SetStyle("RequireMetaKeyToMove", bMoveable)
     tSettings.wnd:SetStyle("IgnoreMouse", not bMoveable)
   end
 end
@@ -286,6 +287,7 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
   end
 
   self.wndMainClusterFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, tParams.bFlipped and "ClusterTargetFlipped" or "ClusterTarget", "FixedHudStratumLow", self)
+
   self.arClusterFrames =
   {
     self.wndMainClusterFrame,
@@ -305,12 +307,12 @@ function VikingTargetFrame:Init(luaUnitFrameSystem, tParams)
   self.wndToTFrame:Show(false)
   self.arClusterFrames[1]:ArrangeChildrenHorz(1)
 
-  self.wndAssistFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "AssistTarget", "FixedHudStratum", self)
+  self.wndAssistFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "AssistTarget", "", self)
   self.wndAssistFrame:Show(false, true)
   self.nAltHealthLeft, self.nAltHealthTop, self.nAltHealthRight, self.nAltHealthBottom = self.wndAssistFrame:FindChild("MaxHealth"):GetAnchorOffsets()
   self.nAltHealthWidth = self.nAltHealthRight - self.nAltHealthLeft
 
-  self.wndSimpleFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "SimpleTargetFrame", "FixedHudStratum", self)
+  self.wndSimpleFrame = Apollo.LoadForm(luaUnitFrameSystem.xmlDoc, "SimpleTargetFrame", "", self)
   self.wndSimpleFrame:Show(false)
 
   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -473,12 +475,10 @@ function VikingTargetFrame:SetTarget(unitTarget)
 
   -- Adjust Position if Target has no Shield
   if unitTarget then
-    if unitTarget:GetShieldCapacity() == nil or 0 and unitTarget:GetShieldCapacityMax() > 0 then
+    if unitTarget:GetShieldCapacityMax() ~= nil and unitTarget:GetShieldCapacityMax() > 0 then
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
-      self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 1, 1, 1)
     else
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
-      self.wndLargeFrame:FindChild("CastingFrame"):SetAnchorPoints(0, 0.77, 1, 0.77)
     end
   end
 
@@ -607,24 +607,24 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   end
 
   -- Resize
-  wndFrame:FindChild("ShieldFill"):EnableGlow(nShieldCurr > 0)
+  wndFrame:FindChild("ShieldFill"):EnableGlow(nShieldCurr > 0 and bAbsorb == false)
   self:SetBarValue(wndFrame:FindChild("ShieldFill"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(wndFrame:FindChild("AbsorbFill"), 0, nAbsorbCurr, nAbsorbMax)
   -- wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
   -- wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
   -- wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
-  if nHealthCurr > 0 and nShieldMax > 0 then
-    wndFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
-    wndFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 0.77)
+  if nShieldCurr > 0 and nShieldMax > 0 then
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
+  elseif bAbsorb == true then
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
   else
-    wndFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
-    wndFrame:FindChild("MaxAbsorb"):SetAnchorPoints(0, 0, 1, 1)
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
   end
 
   -- Bars
-  wndFrame:FindChild("ShieldFill"):Show(nHealthCurr > 0)
+  wndFrame:FindChild("ShieldFill"):Show(nHealthCurr > 0 and bAbsorb == false)
   wndFrame:FindChild("MaxHealth"):Show(nHealthCurr > 0)
-  wndFrame:FindChild("MaxShield"):Show(nHealthCurr > 0 and nShieldMax > 0)
+  wndFrame:FindChild("MaxShield"):Show(nHealthCurr > 0 and nShieldMax > 0 and bAbsorb == false)
   wndFrame:FindChild("MaxAbsorb"):Show(nHealthCurr > 0 and nAbsorbMax > 0)
 
   -- String
@@ -646,9 +646,9 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   self.wndLargeFrame:FindChild("HealthText"):SetTooltip(string.format("%s: %s / %s (%s)", Apollo.GetString("Innate_Health"), strHealthCurr, strHealthMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nHealthCurr/nHealthMax*100)))
 
   if nShieldCurr > 0 and nShieldMax > 0 then
-    if nVisibility == 2 then -- show x/y
+    if nVisibility == 2 and bAbsorb == false then -- show x/y
       self.wndLargeFrame:FindChild("ShieldText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
-    elseif nVisibility == 3 then --show %
+    elseif nVisibility == 3 and bAbsorb == false then --show %
       self.wndLargeFrame:FindChild("ShieldText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
     else --on mouseover
       self.wndLargeFrame:FindChild("ShieldText"):SetText("")
@@ -657,10 +657,14 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   end
 
   if nAbsorbCurr > 0 and nAbsorbMax > 0 then
+    self.wndLargeFrame:FindChild("ShieldText"):SetText("")
     if nVisibility == 2 then -- show x/y
-      self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
+      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax))
+      self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
+
     elseif nVisibility == 3 then --show %
-      self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
+      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100))
+      self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
     else --on mouseover
       self.wndLargeFrame:FindChild("AbsorbText"):SetText("")
     end
@@ -1243,50 +1247,57 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   end
   local nTotalMax = nHealthMax + nShieldMax + nAbsorbMax
 
-  local highHealthColor = VColor("green")
-  local healthColor = VColor("yellow")
-  local lowHealthColor = VColor("red")
-  local VulnerabilityColor = VColor("lightPurple")
-  local shieldColor = VColor("blue")
-  local absorbColor = VColor("white")
+  --Checking if absorb is showing
+  if nHealthCurr > 0 and nAbsorbMax > 0 then
+    bAbsorb = true
+  else
+    bAbsorb = false
+  end
+
+  local cHighHealthColor = VColor("green")
+  local cHealthColor = VColor("yellow")
+  local cLowHealthColor = VColor("red")
+  local cVulnerabilityColor = VColor("lightPurple")
+  local cShieldColor = VColor("blue")
+  local cAbsorbColor = VColor("white")
   local HealthColoredByVulnerability = false
   if self.vikingSettings then
     if self.tParams.nConsoleVar == "hud.focusTargetFrameDisplay" then
-      highHealthColor = self.db.Focus.HighHealthColor
-      healthColor = self.db.Focus.HealthColor
-      lowHealthColor = self.db.Focus.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
-      shieldColor = self.db.Focus.ShieldColor
-      absorbColor = self.db.Focus.AbsorbColor
+      cHighHealthColor = self.db.Focus.HighHealthColor
+      cHealthColor = self.db.Focus.HealthColor
+      cLowHealthColor = self.db.Focus.LowHealthColor
+      cVulnerabilityColor = self.db.Focus.cVulnerabilityColor
+      cShieldColor = self.db.Focus.ShieldColor
+      cAbsorbColor = self.db.Focus.AbsorbColor
       HealthColoredByVulnerability = self.db.Focus.HealthColoredByVulnerability
     elseif self.tParams.nConsoleVar == "hud.myUnitFrameDisplay" then
-      highHealthColor = self.db.Player.HighHealthColor
-      healthColor = self.db.Player.HealthColor
-      lowHealthColor = self.db.Player.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
-      shieldColor = self.db.Player.ShieldColor
-      absorbColor = self.db.Player.AbsorbColor
+      cHighHealthColor = self.db.Player.HighHealthColor
+      cHealthColor = self.db.Player.HealthColor
+      cLowHealthColor = self.db.Player.LowHealthColor
+      cVulnerabilityColor = self.db.Focus.cVulnerabilityColor
+      cShieldColor = self.db.Player.ShieldColor
+      cAbsorbColor = self.db.Player.AbsorbColor
       HealthColoredByVulnerability = self.db.Player.HealthColoredByVulnerability
     else
-      highHealthColor = self.db.Target.HighHealthColor
-      healthColor = self.db.Target.HealthColor
-      lowHealthColor = self.db.Target.LowHealthColor
-      VulnerabilityColor = self.db.Focus.VulnerabilityColor
-      shieldColor = self.db.Target.ShieldColor
-      absorbColor = self.db.Target.AbsorbColor
+      cHighHealthColor = self.db.Target.HighHealthColor
+      cHealthColor = self.db.Target.HealthColor
+      cLowHealthColor = self.db.Target.LowHealthColor
+      cVulnerabilityColor = self.db.Focus.cVulnerabilityColor
+      cShieldColor = self.db.Target.ShieldColor
+      cAbsorbColor = self.db.Target.AbsorbColor
       HealthColoredByVulnerability = self.db.Target.HealthColoredByVulnerability
     end
   end
 
   local wndHealth =  self.wndLargeFrame:FindChild("HealthCapacityTint")
   if HealthColoredByVulnerability and unitTarget:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    wndHealth:SetBarColor(VulnerabilityColor or VColor("lightPurple"))
+    wndHealth:SetBarColor(cVulnerabilityColor or VColor("lightPurple"))
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    wndHealth:SetBarColor(lowHealthColor or VColor("red"))
+    wndHealth:SetBarColor(cLowHealthColor or VColor("red"))
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    wndHealth:SetBarColor(healthColor or VColor("yellow"))
+    wndHealth:SetBarColor(cHealthColor or VColor("yellow"))
   else
-    wndHealth:SetBarColor(highHealthColor or VColor("green"))
+    wndHealth:SetBarColor(cHighHealthColor or VColor("green"))
   end
 
   wndHealth:SetStyleEx("EdgeGlow", nHealthCurr / nHealthMax < 0.96)
@@ -1311,19 +1322,27 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self:SetBarValue(self.wndLargeFrame:FindChild("ShieldCapacityTint"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
   self:SetBarValue(self.wndLargeFrame:FindChild("AbsorbCapacityTint"), 0, nAbsorbCurr, nAbsorbMax)
 
+  if nShieldCurr > 0 and nShieldMax > 0 then
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
+  elseif bAbsorb == true then
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
+  else
+    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
+  end
+
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetProgress(nHealthCurr);
 
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetMax(nShieldMax);
   self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetProgress(nShieldCurr);
-  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(shieldColor or VColor("blue"));
+  self.wndLargeFrame:FindChild("ShieldCapacityTint"):SetBarColor(cShieldColor or VColor("blue"));
 
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetMax(nAbsorbMax);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
-  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(absorbColor or VColor("white"));
+  self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(cAbsorbColor or VColor("white"));
 
-  self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
+  self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0 and bAbsorb == false)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):MoveToLocation(self.wndLargeFrame:FindChild("MaxShield"):IsShown() and self.arAbsorbPos or self.arShieldPos)
 
@@ -1349,9 +1368,9 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self.wndLargeFrame:FindChild("HealthText"):SetTooltip(string.format("%s: %s / %s (%s)", Apollo.GetString("Innate_Health"), strHealthCurr, strHealthMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nHealthCurr/nHealthMax*100)))
 
   if nShieldCurr > 0 and nShieldMax > 0 then
-    if nVisibility == 2 then -- show x/y
+    if nVisibility == 2 and bAbsorb == false then -- show x/y
       self.wndLargeFrame:FindChild("ShieldText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
-    elseif nVisibility == 3 then --show %
+    elseif nVisibility == 3 and bAbsorb == false then --show %
       self.wndLargeFrame:FindChild("ShieldText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
     else --on mouseover
       self.wndLargeFrame:FindChild("ShieldText"):SetText("")
@@ -1360,10 +1379,13 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   end
 
   if nAbsorbCurr > 0 and nAbsorbMax > 0 then
+    self.wndLargeFrame:FindChild("ShieldText"):SetText("")
     if nVisibility == 2 then -- show x/y
-      self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
+      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
+       self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
     elseif nVisibility == 3 then --show %
-      self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
+      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
+       self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
     else --on mouseover
       self.wndLargeFrame:FindChild("AbsorbText"):SetText("")
     end
