@@ -477,13 +477,12 @@ function VikingTargetFrame:SetTarget(unitTarget)
   if unitTarget then
     if unitTarget:GetShieldCapacityMax() ~= nil and unitTarget:GetShieldCapacityMax() > 0 then
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
-      elseif unitTarget:GetAbsorptionMax() ~= nil and unitTarget:GetAbsorptionMax() > 0 then
+    elseif unitTarget:GetAbsorptionMax() ~= nil and unitTarget:GetAbsorptionMax() > 0 then
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)  
     else
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
     end
   end
-
   self:OnUpdate()
 end
 
