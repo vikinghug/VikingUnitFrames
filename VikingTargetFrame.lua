@@ -477,11 +477,12 @@ function VikingTargetFrame:SetTarget(unitTarget)
   if unitTarget then
     if unitTarget:GetShieldCapacityMax() ~= nil and unitTarget:GetShieldCapacityMax() > 0 then
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
+    elseif unitTarget:GetAbsorptionMax() ~= nil and unitTarget:GetAbsorptionMax() > 0 then
+      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)  
     else
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
     end
   end
-
   self:OnUpdate()
 end
 
@@ -604,21 +605,6 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
     local nMinShieldSize = 0.2 -- HARDCODE: Minimum shield bar length is 20% of total for formatting
     nPointHealthRight = self.nAltHealthLeft + (self.nAltHealthWidth * (math.min (1 - nMinShieldSize, nHealthCurr / nTotalMax)))
     nPointShieldRight = self.nAltHealthLeft + (self.nAltHealthWidth * (math.min (1, (nHealthCurr / nTotalMax) + nMinShieldSize)))
-  end
-
-  -- Resize
-  wndFrame:FindChild("ShieldFill"):EnableGlow(nShieldCurr > 0 and bAbsorb == false)
-  self:SetBarValue(wndFrame:FindChild("ShieldFill"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
-  self:SetBarValue(wndFrame:FindChild("AbsorbFill"), 0, nAbsorbCurr, nAbsorbMax)
-  -- wndFrame:FindChild("MaxHealth"):SetAnchorOffsets(self.nAltHealthLeft, self.nAltHealthTop, nPointHealthRight, self.nAltHealthBottom)
-  -- wndFrame:FindChild("MaxShield"):SetAnchorOffsets(nPointHealthRight - 1, self.nAltHealthTop, nPointShieldRight, self.nAltHealthBottom)
-  -- wndFrame:FindChild("MaxAbsorb"):SetAnchorOffsets(nPointShieldRight - 1, self.nAltHealthTop, nPointAbsorbRight, self.nAltHealthBottom)
-  if nShieldCurr > 0 and nShieldMax > 0 then
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
-  elseif bAbsorb == true then
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
-  else
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
   end
 
   -- Bars
@@ -1317,18 +1303,6 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   end
   ]]--
 
-
-  -- Resize
-  self:SetBarValue(self.wndLargeFrame:FindChild("ShieldCapacityTint"), 0, nShieldCurr, nShieldMax) -- Only the Curr Shield really progress fills
-  self:SetBarValue(self.wndLargeFrame:FindChild("AbsorbCapacityTint"), 0, nAbsorbCurr, nAbsorbMax)
-
-  if nShieldCurr > 0 and nShieldMax > 0 then
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
-  elseif bAbsorb == true then
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 0.77)
-  else
-    self.wndLargeFrame:FindChild("MaxHealth"):SetAnchorPoints(0, 0, 1, 1)
-  end
 
   -- Bars
   self.wndLargeFrame:FindChild("HealthCapacityTint"):SetMax(nHealthMax);
