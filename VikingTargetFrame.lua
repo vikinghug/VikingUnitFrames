@@ -478,7 +478,7 @@ function VikingTargetFrame:SetTarget(unitTarget)
     if unitTarget:GetShieldCapacityMax() ~= nil and unitTarget:GetShieldCapacityMax() > 0 then
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
     elseif unitTarget:GetAbsorptionMax() ~= nil and unitTarget:GetAbsorptionMax() > 0 then
-      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)  
+      self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 1)
     else
       self.wndLargeFrame:FindChild("BackgroundContainer"):SetAnchorPoints(0, 0, 1, 0.77)
     end
@@ -645,11 +645,9 @@ function VikingTargetFrame:UpdateAlternateFrame(unitToT)
   if nAbsorbCurr > 0 and nAbsorbMax > 0 then
     self.wndLargeFrame:FindChild("ShieldText"):SetText("")
     if nVisibility == 2 then -- show x/y
-      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax))
       self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
 
     elseif nVisibility == 3 then --show %
-      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100))
       self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
     else --on mouseover
       self.wndLargeFrame:FindChild("AbsorbText"):SetText("")
@@ -903,30 +901,21 @@ function VikingTargetFrame:SetTargetForFrame(wndFrame, unitTarget, bTargetChange
     end
 
     self.wndLargeFrame:FindChild("Attachment"):SetSprite("spr_TargetFrame_Frame"..strAttachment..strFlipped)
-    -- self.wndLargeFrame:FindChild("Backer"):SetSprite("spr_TargetFrame_Frame"..strDisposition..strFlipped)
-
-    if (unitTarget:IsDead() or (unitTarget:IsTagged() and not unitTarget:IsTaggedByMe())) then
-      -- self.wndLargeFrame:FindChild("Backer"):SetSprite("spr_TargetFrame_FrameTapped"..strFlipped)
-    end
 
     local unitToT = unitTarget:GetTarget()
     if unitToT ~= nil then
       local eToTDisposition = unitToT:GetDispositionTo(GameLib.GetPlayerUnit())
 
       if eToTDisposition == Unit.CodeEnumDisposition.Hostile then
-        -- self.wndToTFrame:FindChild("Backer"):SetSprite("spr_TargetFrame_ToTHostile")
         self.wndToTFrame:FindChild("DispositionFrame"):SetBGColor(ApolloColor.new("ffff6d66"))
       elseif eToTDisposition == Unit.CodeEnumDisposition.Neutral then
-        -- self.wndToTFrame:FindChild("Backer"):SetSprite("spr_TargetFrame_ToTNeutral")
         self.wndToTFrame:FindChild("DispositionFrame"):SetBGColor(ApolloColor.new("fffaff66"))
       else
-        -- self.wndToTFrame:FindChild("Backer"):SetSprite("spr_TargetFrame_ToTFriendly")
         self.wndToTFrame:FindChild("DispositionFrame"):SetBGColor(ApolloColor.new("ff00f7de"))
       end
 
       self.wndToTFrame:FindChild("DispositionFrame"):SetTooltip(ktDispositionToTTooltip[eToTDisposition])
     end
-    -- self.wndLargeFrame:FindChild("Backer"):SetBGColor(ApolloColor.new("992b273d"))
 
     --todo: Tooltips
     local bSameFaction = GameLib.GetPlayerUnit():GetFaction() == unitTarget:GetFaction()
@@ -1316,7 +1305,7 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetProgress(nAbsorbCurr);
   self.wndLargeFrame:FindChild("AbsorbCapacityTint"):SetBarColor(cAbsorbColor or VColor("white"));
 
-  self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldCurr > 0 and nShieldMax > 0 and bAbsorb == false)-- and unitTarget:ShouldShowShieldCapacityBar())
+  self.wndLargeFrame:FindChild("MaxShield"):Show(nShieldMax > 0 and bAbsorb == false)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):Show(nAbsorbCurr > 0 and nAbsorbMax > 0)-- and unitTarget:ShouldShowShieldCapacityBar())
   self.wndLargeFrame:FindChild("MaxAbsorb"):MoveToLocation(self.wndLargeFrame:FindChild("MaxShield"):IsShown() and self.arAbsorbPos or self.arShieldPos)
 
@@ -1355,10 +1344,8 @@ function VikingTargetFrame:SetTargetHealthAndShields(wndTargetFrame, unitTarget)
   if nAbsorbCurr > 0 and nAbsorbMax > 0 then
     self.wndLargeFrame:FindChild("ShieldText"):SetText("")
     if nVisibility == 2 then -- show x/y
-      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("TargetFrame_HealthText"), strShieldCurr, strShieldMax))
        self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
     elseif nVisibility == 3 then --show %
-      --self.wndLargeFrame:FindChild("AbsorbText"):SetText(String_GetWeaselString(Apollo.GetString("CRB_Percent"), nShieldCurr/nShieldMax*100))
        self.wndLargeFrame:FindChild("AbsorbText"):SetText(string.format("%s: %s / %s (%s)", Apollo.GetString("FloatText_AbsorbTester"), strAbsorbCurr, strAbsorbMax, String_GetWeaselString(Apollo.GetString("CRB_Percent"), nAbsorbCurr/nAbsorbMax*100)))
     else --on mouseover
       self.wndLargeFrame:FindChild("AbsorbText"):SetText("")
