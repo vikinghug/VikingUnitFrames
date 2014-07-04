@@ -1,6 +1,7 @@
-<Addon Name="VikingTargetFrame" Version="0.2.0" Author="VikinghugUI" APIVersion="8" Description="">
-    <Script Name="VikingTargetFrame.lua"/>
-    <Form Name="VikingTargetFrame.xml"/>
+<Addon Name="VikingUnitFrames" Version="0.2.0" Author="VikinghugUI" APIVersion="8" Description="">
+    <Script Name="VikingUnitFrames.lua"/>
+    <Form Name="VikingUnitFrames.xml"/>
+    <Form Name="VikingSettings.xml"/>
     <Form Name="TargetRewardPanel.xml"/>
     <ReplaceAddon Name="TargetFrame"/>
 </Addon>
