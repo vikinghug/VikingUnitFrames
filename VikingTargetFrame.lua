@@ -1116,7 +1116,8 @@ function VikingTargetFrame:UpdateCastingBar(wndFrame, unitCaster)
       wndCastProgress:SetTickLocations(0, 100, 200, 300)
       end
 
-      strSpellName = unitCaster:GetCastName()
+      strSpellName = (string.len(unitCaster:GetCastName()) > 18 and string.sub(unitCaster:GetCastName(), 1, 18) .. "..." or unitCaster:GetCastName())
+
     end
   end
 
