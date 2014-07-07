@@ -102,9 +102,6 @@ function VikingUnitFrames:OnLoad()
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
 
   Apollo.RegisterEventHandler("ActionBarLoaded", "OnRequiredFlagsChanged", self)
-
-  -- Is this intended or left over?
-  --Apollo.LoadSprites("VikingClassResourcesSprites.xml")
 end
 
 function VikingUnitFrames:OnDocumentReady()
