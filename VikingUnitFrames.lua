@@ -114,7 +114,7 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("WindowManagementUpdate"     , "OnWindowManagementUpdate"     , self)
   Apollo.RegisterEventHandler("CharacterCreated"           , "OnCharacterLoaded"            , self)
   Apollo.RegisterEventHandler("TargetUnitChanged"          , "OnTargetUnitChanged"          , self)
-  Apollo.RegisterEventHandler("AlternateTargetUnitChanged" , "OnAlternateTargetUnitChanged" , self)
+  Apollo.RegisterEventHandler("AlternateTargetUnitChanged" , "OnFocusUnitChanged"           , self)
   Apollo.RegisterEventHandler("PlayerLevelChange"          , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
@@ -250,19 +250,36 @@ end
 -- OnTargetUnitChanged
 --
 
-function VikingUnitFrames:OnTargetUnitChanged(unitTarget)
+function VikingUnitFrames:OnTargetUnitChanged(unit)
 
-  self.tTargetFrame.wndUnitFrame:Show(unitTarget ~= nil)
+  self.tTargetFrame.wndUnitFrame:Show(unit ~= nil)
 
-  if unitTarget ~= nil then
-    self:SetUnit(self.tTargetFrame, unitTarget)
-    self:SetUnitName(self.tTargetFrame, unitTarget:GetName())
+  if unit ~= nil then
+    self:SetUnit(self.tTargetFrame, unit)
+    self:SetUnitName(self.tTargetFrame, unit:GetName())
     self:SetClass(self.tTargetFrame)
   end
 
-  self.unitTarget = unitTarget
+  self.unitTarget = unit
 end
 
+
+--
+-- OnFocusUnitChanged
+--
+
+function VikingUnitFrames:OnFocusUnitChanged(unit)
+
+  self.tTargetFrame.wndUnitFrame:Show(unit ~= nil)
+
+  if unit ~= nil then
+    self:SetUnit(self.tTargetFrame, unit)
+    self:SetUnitName(self.tTargetFrame, unit:GetName())
+    self:SetClass(self.tTargetFrame)
+  end
+
+  self.unitFocus = unit
+end
 
 --
 -- OnFrame
@@ -282,30 +299,11 @@ function VikingUnitFrames:OnFrame()
     self:SetUnitLevel(self.tTargetFrame)
 
     -- FocusFrame
-    local tFocusUnit = self.tPlayerFrame.unit:GetAlternateTarget()
-    self:UpdateFocusFrame(self.tFocusFrame, tFocusUnit)
+    self:UpdateBars(self.tFocusFrame)
+    self:SetUnitLevel(self.tFocusFrame)
 
 
   end
-
-end
-
--- SetBar
---
--- Set Bar Value on UnitFrame
-
-function VikingUnitFrames:UpdateFocusFrame(tFrame, unit)
-  if unit ~= nil then
-    tFrame.wndUnitFrame:Show(true)
-    self:SetUnit(tFrame, unit)
-    self:SetUnitLevel(tFrame)
-    self:UpdateBars(tFrame)
-    self:SetUnitName(tFrame, unit:GetName())
-    self:SetClass(tFrame)
-  else
-    tFrame.wndUnitFrame:Show(false)
-  end
-
 
 end
 
