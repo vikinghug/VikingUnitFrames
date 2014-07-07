@@ -103,7 +103,8 @@ function VikingUnitFrames:OnLoad()
 
   Apollo.RegisterEventHandler("ActionBarLoaded", "OnRequiredFlagsChanged", self)
 
-  Apollo.LoadSprites("VikingClassResourcesSprites.xml")
+  -- Is this intended or left over?
+  --Apollo.LoadSprites("VikingClassResourcesSprites.xml")
 end
 
 function VikingUnitFrames:OnDocumentReady()
@@ -158,6 +159,7 @@ function VikingUnitFrames:CreateUnitFrame(name)
   local sFrame = "t" .. name .. "Frame"
 
   local wndUnitFrame = Apollo.LoadForm(self.xmlDoc, "UnitFrame", "FixedHudStratumLow" , self)
+
 
   local tFrame = {
     name          = name,
@@ -284,6 +286,7 @@ function VikingUnitFrames:OnFrame()
 
     -- UnitFrame
     self:UpdateBars(self.tPlayerFrame)
+    self:SetUnitLevel(self.tTargetFrame)
 
     -- TargetFrame
     self:UpdateBars(self.tTargetFrame)
@@ -346,6 +349,10 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local wndProgress   = wndBar:FindChild("ProgressBar")
     local wndText       = wndBar:FindChild("Text")
 
+    --Temp fix until VikingSettings work for changing healthText display option
+    local nVisibility = Apollo.GetConsoleVariable("hud.healthTextDisplay")
+
+
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
     wndBar:Show(isValidBar, false)
 
@@ -353,7 +360,8 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
 
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
-      if self.db.text.value then
+      --if self.db.text.value then
+      if nVisibility == 2 then
         wndText:SetText(nCurrent .. " / " .. nMax)
       elseif self.db.text.percent then
         wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
@@ -566,6 +574,10 @@ function VikingUnitFrames:OnCastTargetFrameTimerTick()
   self:UpdateCastTimer(self.tTargetFrame)
 end
 
+-- Fix for Focus frame not showing progress bar
+function VikingUnitFrames:OnCastFocusFrameTimerTick()
+  self:UpdateCastTimer(self.tFocusFrame)
+end
 
 function VikingUnitFrames:UpdateCastTimer(tFrame)
   local wndProgressBar = tFrame.wndCastBar:FindChild("ProgressBar")
@@ -604,5 +616,13 @@ function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButto
   end
 end
 
-local VikingClassResourcesInst = VikingUnitFrames:new()
-VikingClassResourcesInst:Init()
+  -- Fix for showing Buff Tooltip
+function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, splBuff)
+  if wndHandler == wndControl then
+    return
+  end
+  Tooltip.GetBuffTooltipForm(self, wndControl, splBuff, {bFutureSpell = false})
+end
+
+local VikingUnitFramesInst = VikingUnitFrames:new()
+VikingUnitFramesInst:Init()
