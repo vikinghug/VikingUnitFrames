@@ -283,7 +283,6 @@ function VikingUnitFrames:OnFrame()
 
     -- UnitFrame
     self:UpdateBars(self.tPlayerFrame)
-    self:SetUnitLevel(self.tTargetFrame)
 
     -- TargetFrame
     self:UpdateBars(self.tTargetFrame)
