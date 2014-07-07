@@ -100,10 +100,6 @@ end
 function VikingUnitFrames:OnLoad()
   self.xmlDoc = XmlDoc.CreateFromFile("VikingUnitFrames.xml")
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
-
-  Apollo.RegisterEventHandler("ActionBarLoaded", "OnRequiredFlagsChanged", self)
-
-  Apollo.LoadSprites("VikingClassResourcesSprites.xml")
 end
 
 function VikingUnitFrames:OnDocumentReady()
@@ -113,7 +109,6 @@ function VikingUnitFrames:OnDocumentReady()
 
   Apollo.RegisterEventHandler("WindowManagementReady"      , "OnWindowManagementReady"      , self)
   Apollo.RegisterEventHandler("WindowManagementUpdate"     , "OnWindowManagementUpdate"     , self)
-  Apollo.RegisterEventHandler("CharacterCreated"           , "OnCharacterLoaded"            , self)
   Apollo.RegisterEventHandler("TargetUnitChanged"          , "OnTargetUnitChanged"          , self)
   Apollo.RegisterEventHandler("AlternateTargetUnitChanged" , "OnFocusUnitChanged"           , self)
   Apollo.RegisterEventHandler("PlayerLevelChange"          , "OnUnitLevelChange"            , self)
@@ -132,6 +127,7 @@ function VikingUnitFrames:OnWindowManagementReady()
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = Apollo.GetString("OptionsHUD_FocusTargetLabel") })
 end
 
+
 function VikingUnitFrames:OnRequiredFlagsChanged()
   if g_wndActionBarResources and self.bDocLoaded then
     if GameLib.GetPlayerUnit() then
@@ -141,6 +137,18 @@ function VikingUnitFrames:OnRequiredFlagsChanged()
     end
   end
 end
+
+
+function VikingUnitFrames:OnWindowManagementUpdate(tWindow)
+  if tWindow and tWindow.wnd and (tWindow.wnd == self.tPlayerFrame.wndUnitFrame or tWindow.wnd == self.tTargetFrame.wndUnitFrame or tWindow.wnd == self.tFocusFrame.wndUnitFrame) then
+    local bMoveable = tWindow.wnd:IsStyleOn("Moveable")
+
+    tWindow.wnd:SetStyle("Sizable", bMoveable)
+    tWindow.wnd:SetStyle("RequireMetaKeyToMove", bMoveable)
+    tWindow.wnd:SetStyle("IgnoreMouse", not bMoveable)
+  end
+end
+
 
 function VikingUnitFrames:OnUnitLevelChange()
   self:SetUnitLevel(self.tPlayerFrame)
@@ -200,9 +208,6 @@ function VikingUnitFrames:OnCharacterLoaded()
     VikingLib.RegisterSettings(self, "VikingUnitFrames")
   end
 
-
-  -- My Unit Frame
-
   -- PlayerFrame
   self.tPlayerFrame = self:CreateUnitFrame("Player")
 
@@ -211,7 +216,6 @@ function VikingUnitFrames:OnCharacterLoaded()
   self:SetUnitLevel(self.tPlayerFrame)
   self.tPlayerFrame.wndUnitFrame:Show(true, false)
   self:SetClass(self.tPlayerFrame)
-
 
   -- Target Frame
   self.tTargetFrame = self:CreateUnitFrame("Target")
@@ -346,6 +350,10 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local wndProgress   = wndBar:FindChild("ProgressBar")
     local wndText       = wndBar:FindChild("Text")
 
+    --Temp fix until VikingSettings work for changing healthText display option
+    local nVisibility = Apollo.GetConsoleVariable("hud.healthTextDisplay")
+
+
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
     wndBar:Show(isValidBar, false)
 
@@ -353,7 +361,8 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
 
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
-      if self.db.text.value then
+      --if self.db.text.value then
+      if nVisibility == 2 then
         wndText:SetText(nCurrent .. " / " .. nMax)
       elseif self.db.text.percent then
         wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
@@ -566,6 +575,9 @@ function VikingUnitFrames:OnCastTargetFrameTimerTick()
   self:UpdateCastTimer(self.tTargetFrame)
 end
 
+function VikingUnitFrames:OnCastFocusFrameTimerTick()
+  self:UpdateCastTimer(self.tFocusFrame)
+end
 
 function VikingUnitFrames:UpdateCastTimer(tFrame)
   local wndProgressBar = tFrame.wndCastBar:FindChild("ProgressBar")
@@ -604,5 +616,13 @@ function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButto
   end
 end
 
-local VikingClassResourcesInst = VikingUnitFrames:new()
-VikingClassResourcesInst:Init()
+
+function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, splBuff)
+  if wndHandler == wndControl then
+    return
+  end
+  Tooltip.GetBuffTooltipForm(self, wndControl, splBuff, {bFutureSpell = false})
+end
+
+local VikingUnitFramesInst = VikingUnitFrames:new()
+VikingUnitFramesInst:Init()
