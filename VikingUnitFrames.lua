@@ -100,8 +100,6 @@ end
 function VikingUnitFrames:OnLoad()
   self.xmlDoc = XmlDoc.CreateFromFile("VikingUnitFrames.xml")
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
-
-  Apollo.RegisterEventHandler("ActionBarLoaded", "OnRequiredFlagsChanged", self)
 end
 
 function VikingUnitFrames:OnDocumentReady()
@@ -111,7 +109,6 @@ function VikingUnitFrames:OnDocumentReady()
 
   Apollo.RegisterEventHandler("WindowManagementReady"      , "OnWindowManagementReady"      , self)
   Apollo.RegisterEventHandler("WindowManagementUpdate"     , "OnWindowManagementUpdate"     , self)
--- Apollo.RegisterEventHandler("CharacterCreated"           , "OnCharacterLoaded"            , self)
   Apollo.RegisterEventHandler("TargetUnitChanged"          , "OnTargetUnitChanged"          , self)
   Apollo.RegisterEventHandler("AlternateTargetUnitChanged" , "OnFocusUnitChanged"           , self)
   Apollo.RegisterEventHandler("PlayerLevelChange"          , "OnUnitLevelChange"            , self)
@@ -141,15 +138,17 @@ function VikingUnitFrames:OnRequiredFlagsChanged()
   end
 end
 
-function VikingUnitFrames:OnWindowManagementUpdate(tSettings)
-if tSettings and tSettings.wnd and (tSettings.wnd == self.tPlayerFrame.wndUnitFrame or tSettings.wnd == self.tTargetFrame.wndUnitFrame or tSettings.wnd == self.tFocusFrame.wndUnitFrame) then
-    local bMoveable = tSettings.wnd:IsStyleOn("Moveable")
 
-    tSettings.wnd:SetStyle("Sizable", bMoveable)
-    tSettings.wnd:SetStyle("RequireMetaKeyToMove", bMoveable)
-    tSettings.wnd:SetStyle("IgnoreMouse", not bMoveable)
+function VikingUnitFrames:OnWindowManagementUpdate(tWindow)
+  if tWindow and tWindow.wnd and (tWindow.wnd == self.tPlayerFrame.wndUnitFrame or tWindow.wnd == self.tTargetFrame.wndUnitFrame or tWindow.wnd == self.tFocusFrame.wndUnitFrame) then
+    local bMoveable = tWindow.wnd:IsStyleOn("Moveable")
+
+    tWindow.wnd:SetStyle("Sizable", bMoveable)
+    tWindow.wnd:SetStyle("RequireMetaKeyToMove", bMoveable)
+    tWindow.wnd:SetStyle("IgnoreMouse", not bMoveable)
   end
 end
+
 
 function VikingUnitFrames:OnUnitLevelChange()
   self:SetUnitLevel(self.tPlayerFrame)
@@ -167,7 +166,6 @@ function VikingUnitFrames:CreateUnitFrame(name)
   local sFrame = "t" .. name .. "Frame"
 
   local wndUnitFrame = Apollo.LoadForm(self.xmlDoc, "UnitFrame", "FixedHudStratumLow" , self)
-
 
   local tFrame = {
     name          = name,
@@ -209,10 +207,6 @@ function VikingUnitFrames:OnCharacterLoaded()
     self.db = VikingLib.GetDatabase("VikingUnitFrames")
     VikingLib.RegisterSettings(self, "VikingUnitFrames")
   end
-
-
-
-  -- My Unit Frame
 
   -- PlayerFrame
   self.tPlayerFrame = self:CreateUnitFrame("Player")
@@ -622,7 +616,7 @@ function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButto
   end
 end
 
-  -- Fix for showing Buff Tooltip
+
 function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, splBuff)
   if wndHandler == wndControl then
     return
