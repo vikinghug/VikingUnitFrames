@@ -5,6 +5,7 @@ require "Apollo"
 require "ApolloColor"
 require "Window"
 
+local VikingLib
 local VikingUnitFrames = {
   _VERSION = 'VikingUnitFrames.lua 0.1.0',
   _URL     = 'https://github.com/vikinghug/VikingUnitFrames',
@@ -128,6 +129,7 @@ end
 function VikingUnitFrames:OnWindowManagementReady()
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel") })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = Apollo.GetString("OptionsHUD_TargetFrameLabel") })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = Apollo.GetString("OptionsHUD_FocusTargetLabel") })
 end
 
 function VikingUnitFrames:OnRequiredFlagsChanged()
@@ -153,6 +155,8 @@ end
 
 function VikingUnitFrames:CreateUnitFrame(name)
 
+  local sFrame = "t" .. name .. "Frame"
+
   local wndUnitFrame = Apollo.LoadForm(self.xmlDoc, "UnitFrame", "FixedHudStratumLow" , self)
 
   local tFrame = {
@@ -168,6 +172,10 @@ function VikingUnitFrames:CreateUnitFrame(name)
 
   tFrame.wndUnitFrame:SetSizingMinimum(140, 60)
 
+  tFrame.locDefaultPosition = WindowLocation.new(self.db.position[name:lower() .. "Frame"])
+  tFrame.wndUnitFrame:MoveToLocation(tFrame.locDefaultPosition)
+  self:InitColors(tFrame)
+
   return tFrame
 
 end
@@ -178,17 +186,18 @@ end
 --
 --
 function VikingUnitFrames:OnCharacterLoaded()
-  local unitPlayer = GameLib.GetPlayerUnit()
-  if not unitPlayer then
+  local playerUnit = GameLib.GetPlayerUnit()
+  if not playerUnit then
     return
   end
 
-  if not self.VL then
-    self.VL = Apollo.GetAddon("VikingLibrary")
+  if VikingLib == nil then
+    VikingLib = Apollo.GetAddon("VikingLibrary")
   end
 
-  if self.VL then
-    self.db = VL.GetDatabase("VikingUnitFrames")
+  if VikingLib ~= nil then
+    self.db = VikingLib.GetDatabase("VikingUnitFrames")
+    VikingLib.RegisterSettings(self, "VikingUnitFrames")
   end
 
 
@@ -197,35 +206,21 @@ function VikingUnitFrames:OnCharacterLoaded()
   -- PlayerFrame
   self.tPlayerFrame = self:CreateUnitFrame("Player")
 
-  self:SetUnit(self.tPlayerFrame, unitPlayer)
-  self:SetUnitName(self.tPlayerFrame, unitPlayer:GetName())
+  self:SetUnit(self.tPlayerFrame, playerUnit)
+  self:SetUnitName(self.tPlayerFrame, playerUnit:GetName())
   self:SetUnitLevel(self.tPlayerFrame)
   self.tPlayerFrame.wndUnitFrame:Show(true, false)
   self:SetClass(self.tPlayerFrame)
-  self:InitColors(self.tPlayerFrame)
-
-  self.tPlayerFrame.locDefaultPosition = WindowLocation.new(self.db.position.playerFrame)
-  self.tPlayerFrame.wndUnitFrame:MoveToLocation(self.tPlayerFrame.locDefaultPosition)
 
 
   -- Target Frame
   self.tTargetFrame = self:CreateUnitFrame("Target")
 
-  self.tTargetFrame.locDefaultPosition = WindowLocation.new(self.db.position.targetFrame)
-  self.tTargetFrame.wndUnitFrame:MoveToLocation(self.tTargetFrame.locDefaultPosition)
-  self:InitColors(self.tTargetFrame)
-
-
   -- Focus Frame
   self.tFocusFrame = self:CreateUnitFrame("Focus")
-  self.tTargetFrame.locDefaultPosition = WindowLocation.new(self.db.position.targetFrame)
-  self.tTargetFrame.wndUnitFrame:MoveToLocation(self.tTargetFrame.locDefaultPosition)
-
-  self:InitColors(self.tFocusFrame)
 
 
-
-  self.eClassID =  unitPlayer:GetClassId()
+  self.eClassID =  playerUnit:GetClassId()
 
 end
 
@@ -239,9 +234,9 @@ end
 
 
 function VikingUnitFrames:OnLoading()
-  local unitPlayer = GameLib.GetPlayerUnit()
-  if not unitPlayer then return end
-  self.tPlayerFrame.unit = unitPlayer
+  local playerUnit = GameLib.GetPlayerUnit()
+  if not playerUnit then return end
+  self.tPlayerFrame.unit = playerUnit
   LoadingTimer:Stop()
 end
 
@@ -251,16 +246,8 @@ end
 --
 
 function VikingUnitFrames:OnTargetUnitChanged(unit)
-
-  self.tTargetFrame.wndUnitFrame:Show(unit ~= nil)
-
-  if unit ~= nil then
-    self:SetUnit(self.tTargetFrame, unit)
-    self:SetUnitName(self.tTargetFrame, unit:GetName())
-    self:SetClass(self.tTargetFrame)
-  end
-
-  self.unitTarget = unit
+  self:UnitChanged(self.tTargetFrame, unit)
+  self.targetUnit = unit
 end
 
 
@@ -269,16 +256,20 @@ end
 --
 
 function VikingUnitFrames:OnFocusUnitChanged(unit)
+  self:UnitChanged(self.tFocusFrame, unit)
+  self.focusUnit = unit
+end
 
-  self.tTargetFrame.wndUnitFrame:Show(unit ~= nil)
+function VikingUnitFrames:UnitChanged(tFrame, unit)
+
+  tFrame.wndUnitFrame:Show(unit ~= nil)
 
   if unit ~= nil then
-    self:SetUnit(self.tTargetFrame, unit)
-    self:SetUnitName(self.tTargetFrame, unit:GetName())
-    self:SetClass(self.tTargetFrame)
+    self:SetUnit(tFrame, unit)
+    self:SetUnitName(tFrame, unit:GetName())
+    self:SetClass(tFrame)
   end
 
-  self.unitFocus = unit
 end
 
 --
@@ -362,7 +353,11 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
 
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
-      wndText:SetText(nCurrent .. " / " .. nMax)
+      if self.db.text.value then
+        wndText:SetText(nCurrent .. " / " .. nMax)
+      elseif self.db.text.percent then
+        wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
+      end
 
       local nLowBar     = 0.3
       local nAverageBar = 0.5
@@ -436,8 +431,8 @@ end
 --
 -- Set Disposition on UnitFrame
 
-function VikingUnitFrames:SetDisposition(tFrame, unitTarget)
-  tFrame.disposition = unitTarget:GetDispositionTo(self.tPlayerFrame.unit)
+function VikingUnitFrames:SetDisposition(tFrame, targetUnit)
+  tFrame.disposition = targetUnit:GetDispositionTo(self.tPlayerFrame.unit)
 
 
   local dispositionColor = ApolloColor.new(self.db.General.dispositionColors[tFrame.disposition])
@@ -541,7 +536,7 @@ function VikingUnitFrames:UpdateCastBar(tFrame, bCasting)
 
     tFrame.nTimePrevious = 0
     tFrame.nTimeMax      = tFrame.unit:GetCastDuration()
-    tFrame.wndCastBar:Show(true)
+    tFrame.wndCastBar:Show(true, false)
     wndProgressBar:SetProgress(0)
     wndProgressBar:SetMax(tFrame.nTimeMax)
     wndText:SetText(sCastName)
@@ -586,7 +581,7 @@ function VikingUnitFrames:KillCastTimer(tFrame)
   tFrame.CastTimerTick:Stop()
   local wndProgressBar = tFrame.wndCastBar:FindChild("ProgressBar")
   wndProgressBar:SetProgress(tFrame.nTimeMax)
-  tFrame.wndCastBar:Show(false)
+  tFrame.wndCastBar:Show(false, .002)
 end
 
 
@@ -597,6 +592,11 @@ end
 
 function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
   local unit = wndHandler:GetData()
+
+  if eMouseButton == GameLib.CodeEnumInputMouse.Left and unit ~= nil then
+    GameLib.SetTargetUnit(unit)
+    return
+  end
 
   -- Player Menu
   if eMouseButton == GameLib.CodeEnumInputMouse.Right and unit ~= nil then
