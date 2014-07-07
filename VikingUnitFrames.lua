@@ -570,7 +570,6 @@ function VikingUnitFrames:OnCastTargetFrameTimerTick()
   self:UpdateCastTimer(self.tTargetFrame)
 end
 
--- Fix for Focus frame not showing progress bar
 function VikingUnitFrames:OnCastFocusFrameTimerTick()
   self:UpdateCastTimer(self.tFocusFrame)
 end
