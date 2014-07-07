@@ -115,6 +115,7 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
+  Apollo.RegisterEventHandler("ActionBarLoaded"            , "OnRequiredFlagsChanged"       , self)
 
   self.bDocLoaded = true
   self:OnRequiredFlagsChanged()
