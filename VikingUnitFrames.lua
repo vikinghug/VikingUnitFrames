@@ -130,6 +130,16 @@ function VikingUnitFrames:OnWindowManagementReady()
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = Apollo.GetString("OptionsHUD_FocusTargetLabel") })
 end
 
+function VikingUnitFrames:OnWindowManagementUpdate(tSettings)
+if tSettings and tSettings.wnd and (tSettings.wnd == self.tPlayerFrame.wndUnitFrame or tSettings.wnd == self.tTargetFrame.wndUnitFrame or tSettings.wnd == self.tFocusFrame.wndUnitFrame) then
+    local bMoveable = tSettings.wnd:IsStyleOn("Moveable")
+
+    tSettings.wnd:SetStyle("Sizable", bMoveable)
+    tSettings.wnd:SetStyle("RequireMetaKeyToMove", bMoveable)
+    tSettings.wnd:SetStyle("IgnoreMouse", not bMoveable)
+  end
+end
+
 function VikingUnitFrames:OnRequiredFlagsChanged()
   if g_wndActionBarResources and self.bDocLoaded then
     if GameLib.GetPlayerUnit() then
