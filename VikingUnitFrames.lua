@@ -115,7 +115,6 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
-  Apollo.RegisterEventHandler("ActionBarLoaded"            , "OnRequiredFlagsChanged"       , self)
 
   self.bDocLoaded = true
   self:OnRequiredFlagsChanged()
@@ -130,12 +129,10 @@ end
 
 
 function VikingUnitFrames:OnRequiredFlagsChanged()
-  if g_wndActionBarResources and self.bDocLoaded then
-    if GameLib.GetPlayerUnit() then
-      self:OnCharacterLoaded()
-    else
-      Apollo.RegisterEventHandler("CharacterCreated", "OnCharacterLoaded", self)
-    end
+  if GameLib.GetPlayerUnit() then
+    self:OnCharacterLoaded()
+  else
+    Apollo.RegisterEventHandler("CharacterCreated", "OnCharacterLoaded", self)
   end
 end
 
