@@ -86,6 +86,51 @@ local tTargetMarkSpriteMap =
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
+local eTextStyle =
+{
+  None = 1,
+  Percent = 2,
+  Value = 3
+}
+
+local tColors = {
+  black       = "141122",
+  white       = "ffffff",
+  lightGrey   = "bcb7da",
+  green       = "1fd865",
+  yellow      = "ffd161",
+  orange      = "e08457",
+  lightPurple = "645f7e",
+  purple      = "2b273d",
+  red         = "e05757",
+  blue        = "4ae8ee"
+}
+
+local tDefaultSettings = 
+{
+  style = 0,
+  position = {
+    playerFrame = {
+      fPoints  = {0.5, 1, 0.5, 1},
+      nOffsets = {-350, -200, -100, -120}
+    },
+    targetFrame = {
+      fPoints  = {0.5, 1, 0.5, 1},
+      nOffsets = {100, -200, 350, -120}
+    },
+    focusFrame = {
+      fPoints  = {0, 1, 0, 1},
+      nOffsets = {40, -500, 250, -440}
+    }
+  },
+  textStyle = eTextStyle.Percent,
+  colors = {
+    Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
+    Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
+    Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
+  }
+}
+
 function VikingUnitFrames:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -202,8 +247,8 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
-    self.db = VikingLib.GetDatabase("VikingUnitFrames")
-    VikingLib.RegisterSettings(self, "VikingUnitFrames")
+    VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", tDefaultSettings)
+    self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
   end
 
   -- PlayerFrame
@@ -359,10 +404,12 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
 
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
-      --if self.db.text.value then
-      if nVisibility == 2 then
+      
+      if self.db.textStyle == eTextStyle.None then
+        wndText:SetText("")
+      elseif self.db.textStyle == eTextStyle.Value then
         wndText:SetText(nCurrent .. " / " .. nMax)
-      elseif self.db.text.percent then
+      elseif self.db.textStyle == eTextStyle.Percent then
         wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
       end
 
@@ -620,6 +667,40 @@ function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, s
     return
   end
   Tooltip.GetBuffTooltipForm(self, wndControl, splBuff, {bFutureSpell = false})
+end
+
+---------------------------------------------------------------------------------------------------
+-- VikingSettings Functions
+---------------------------------------------------------------------------------------------------
+
+function VikingUnitFrames:UpdateSettingsForm(wndContainer)
+  -- Text Style
+  local strTextStyle = VikingLib.GetKeyFromValue(eTextStyle, self.db.textStyle)
+  for k, v in pairs(eTextStyle) do 
+    local wndTextStyleButton = wndContainer:FindChild("TextStyle:Content:"..k)
+    if wndTextStyleButton then wndTextStyleButton:SetCheck(k == strTextStyle) end
+  end
+
+  -- Bar colors
+  for strBarName, tBarColorData in pairs(self.db.colors) do
+    wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
+
+    if wndColorContainer then
+      for strColorState, strColor in pairs(tBarColorData) do
+        wndColor = wndColorContainer:FindChild(strColorState)
+
+        if wndColor then wndColor:SetBGColor(strColor) end
+      end
+    end
+  end
+end
+
+function VikingUnitFrames:OnTextStyleBtnCheck( wndHandler, wndControl, eMouseButton )
+  self.db.textStyle = eTextStyle[wndControl:GetName()]
+end
+
+function VikingUnitFrames:OnSettingsBarColor( wndHandler, wndControl, eMouseButton )
+  VikingLib.Settings.ShowColorPickerForSetting(self.db.colors[wndControl:GetParent():GetName()], wndControl:GetName(), nil, wndControl)
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
