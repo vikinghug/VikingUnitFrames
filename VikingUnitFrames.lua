@@ -284,6 +284,7 @@ function VikingUnitFrames:OnLoading()
   local playerUnit = GameLib.GetPlayerUnit()
   if not playerUnit then return end
   self:SetUnit(self.tPlayerFrame, playerUnit)
+  self:SetUnitLevel(self.tPlayerFrame)
   self.tPlayerFrame.unit = playerUnit
   LoadingTimer:Stop()
 end
