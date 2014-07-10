@@ -650,6 +650,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
+  if wndHandler ~= wndControl then return end
   local unit = wndHandler:GetData()
 
   if eMouseButton == GameLib.CodeEnumInputMouse.Left and unit ~= nil then
