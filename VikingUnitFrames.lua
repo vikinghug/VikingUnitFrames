@@ -686,11 +686,11 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
 
   -- Bar colors
   for strBarName, tBarColorData in pairs(self.db.colors) do
-    wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
+    local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
 
     if wndColorContainer then
       for strColorState, strColor in pairs(tBarColorData) do
-        wndColor = wndColorContainer:FindChild(strColorState)
+        local wndColor = wndColorContainer:FindChild(strColorState)
 
         if wndColor then wndColor:SetBGColor(strColor) end
       end
