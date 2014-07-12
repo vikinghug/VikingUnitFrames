@@ -243,7 +243,7 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
-    VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", tDefaultSettings)
+    VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", "Unit Frames", tDefaultSettings)
     self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
     self.generalDb = VikingLib.Settings.GetDatabase("General")
   end
