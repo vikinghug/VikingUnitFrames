@@ -86,6 +86,51 @@ local tTargetMarkSpriteMap =
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
+local eTextStyle =
+{
+  None = 1,
+  Percent = 2,
+  Value = 3
+}
+
+local tColors = {
+  black       = "141122",
+  white       = "ffffff",
+  lightGrey   = "bcb7da",
+  green       = "1fd865",
+  yellow      = "ffd161",
+  orange      = "e08457",
+  lightPurple = "645f7e",
+  purple      = "2b273d",
+  red         = "e05757",
+  blue        = "4ae8ee"
+}
+
+local tDefaultSettings = 
+{
+  style = 0,
+  position = {
+    playerFrame = {
+      fPoints  = {0.5, 1, 0.5, 1},
+      nOffsets = {-350, -200, -100, -120}
+    },
+    targetFrame = {
+      fPoints  = {0.5, 1, 0.5, 1},
+      nOffsets = {100, -200, 350, -120}
+    },
+    focusFrame = {
+      fPoints  = {0, 1, 0, 1},
+      nOffsets = {40, -500, 250, -440}
+    }
+  },
+  textStyle = eTextStyle.Percent,
+  colors = {
+    Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
+    Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
+    Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
+  }
+}
+
 function VikingUnitFrames:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -115,7 +160,6 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
-  Apollo.RegisterEventHandler("ActionBarLoaded"            , "OnRequiredFlagsChanged"       , self)
 
   self.bDocLoaded = true
   self:OnRequiredFlagsChanged()
@@ -130,12 +174,10 @@ end
 
 
 function VikingUnitFrames:OnRequiredFlagsChanged()
-  if g_wndActionBarResources and self.bDocLoaded then
-    if GameLib.GetPlayerUnit() then
-      self:OnCharacterLoaded()
-    else
-      Apollo.RegisterEventHandler("CharacterCreated", "OnCharacterLoaded", self)
-    end
+  if GameLib.GetPlayerUnit() then
+    self:OnCharacterLoaded()
+  else
+    Apollo.RegisterEventHandler("CharacterCreated", "OnCharacterLoaded", self)
   end
 end
 
@@ -205,8 +247,8 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
-    self.db = VikingLib.GetDatabase("VikingUnitFrames")
-    VikingLib.RegisterSettings(self, "VikingUnitFrames")
+    VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", tDefaultSettings)
+    self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
   end
 
   -- PlayerFrame
@@ -231,7 +273,7 @@ end
 
 
 local LoadingTimer
-function VikingUnitFrames:OnWorldChanged()
+function VikingUnitFrames:OnWorldChanged(tFrame)
   self:OnRequiredFlagsChanged()
 
   LoadingTimer = ApolloTimer.Create(0.01, true, "OnLoading", self)
@@ -241,6 +283,8 @@ end
 function VikingUnitFrames:OnLoading()
   local playerUnit = GameLib.GetPlayerUnit()
   if not playerUnit then return end
+  self:SetUnit(self.tPlayerFrame, playerUnit)
+  self:SetUnitLevel(self.tPlayerFrame)
   self.tPlayerFrame.unit = playerUnit
   LoadingTimer:Stop()
 end
@@ -362,10 +406,12 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
 
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
-      --if self.db.text.value then
-      if nVisibility == 2 then
+      
+      if self.db.textStyle == eTextStyle.None then
+        wndText:SetText("")
+      elseif self.db.textStyle == eTextStyle.Value then
         wndText:SetText(nCurrent .. " / " .. nMax)
-      elseif self.db.text.percent then
+      elseif self.db.textStyle == eTextStyle.Percent then
         wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
       end
 
@@ -463,6 +509,7 @@ function VikingUnitFrames:SetUnit(tFrame, unit)
 
   -- Set the Data to the unit, for mouse events
   tFrame.wndUnitFrame:SetData(tFrame.unit)
+
 end
 
 
@@ -603,7 +650,9 @@ end
 -- UnitFrame Functions
 ---------------------------------------------------------------------------------------------------
 
-function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
+
+function VikingUnitFrames:OnMouseButtonUp( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
+    if wndHandler ~= wndControl then return end
   local unit = wndHandler:GetData()
 
   if eMouseButton == GameLib.CodeEnumInputMouse.Left and unit ~= nil then
@@ -617,12 +666,46 @@ function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButto
   end
 end
 
-
 function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, splBuff)
   if wndHandler == wndControl then
     return
   end
   Tooltip.GetBuffTooltipForm(self, wndControl, splBuff, {bFutureSpell = false})
+end
+
+
+---------------------------------------------------------------------------------------------------
+-- VikingSettings Functions
+---------------------------------------------------------------------------------------------------
+
+function VikingUnitFrames:UpdateSettingsForm(wndContainer)
+  -- Text Style
+  local strTextStyle = VikingLib.GetKeyFromValue(eTextStyle, self.db.textStyle)
+  for k, v in pairs(eTextStyle) do 
+    local wndTextStyleButton = wndContainer:FindChild("TextStyle:Content:"..k)
+    if wndTextStyleButton then wndTextStyleButton:SetCheck(k == strTextStyle) end
+  end
+
+  -- Bar colors
+  for strBarName, tBarColorData in pairs(self.db.colors) do
+    local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
+
+    if wndColorContainer then
+      for strColorState, strColor in pairs(tBarColorData) do
+        local wndColor = wndColorContainer:FindChild(strColorState)
+
+        if wndColor then wndColor:SetBGColor(strColor) end
+      end
+    end
+  end
+end
+
+function VikingUnitFrames:OnTextStyleBtnCheck( wndHandler, wndControl, eMouseButton )
+  self.db.textStyle = eTextStyle[wndControl:GetName()]
+end
+
+function VikingUnitFrames:OnSettingsBarColor( wndHandler, wndControl, eMouseButton )
+  VikingLib.Settings.ShowColorPickerForSetting(self.db.colors[wndControl:GetParent():GetName()], wndControl:GetName(), nil, wndControl)
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
