@@ -650,7 +650,6 @@ end
 -- UnitFrame Functions
 ---------------------------------------------------------------------------------------------------
 
-
 function VikingUnitFrames:OnMouseButtonUp( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
     if wndHandler ~= wndControl then return end
   local unit = wndHandler:GetData()
@@ -672,7 +671,6 @@ function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, s
   end
   Tooltip.GetBuffTooltipForm(self, wndControl, splBuff, {bFutureSpell = false})
 end
-
 
 ---------------------------------------------------------------------------------------------------
 -- VikingSettings Functions
