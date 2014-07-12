@@ -163,9 +163,9 @@ function VikingUnitFrames:OnDocumentReady()
 end
 
 function VikingUnitFrames:OnWindowManagementReady()
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = Apollo.GetString("OptionsHUD_MyUnitFrameLabel") })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = Apollo.GetString("OptionsHUD_TargetFrameLabel") })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = Apollo.GetString("OptionsHUD_FocusTargetLabel") })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = "Viking Player Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = "Viking Target Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = "Viking Focus Target" })
 end
 
 
