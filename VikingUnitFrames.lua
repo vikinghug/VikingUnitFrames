@@ -262,9 +262,7 @@ function VikingUnitFrames:OnCharacterLoaded()
 
   -- Target Frame
   self.tTargetFrame = self:CreateUnitFrame("Target")
-  if GameLib.GetTargetUnit() ~= nil then
-    self:OnTargetUnitChanged(GameLib.GetTargetUnit())
-  end
+  self:UpdateUnitFrame(self.tTargetFrame, GameLib.GetTargetUnit())
 
   -- Focus Frame
   self.tFocusFrame = self:CreateUnitFrame("Focus")
@@ -298,8 +296,7 @@ end
 --
 
 function VikingUnitFrames:OnTargetUnitChanged(unit)
-  self:UnitChanged(self.tTargetFrame, unit)
-  self.targetUnit = unit
+  self:UpdateUnitFrame(self.tTargetFrame, unit)
 end
 
 
@@ -308,11 +305,10 @@ end
 --
 
 function VikingUnitFrames:OnFocusUnitChanged(unit)
-  self:UnitChanged(self.tFocusFrame, unit)
-  self.focusUnit = unit
+  self:UpdateUnitFrame(self.tFocusFrame, unit)
 end
 
-function VikingUnitFrames:UnitChanged(tFrame, unit)
+function VikingUnitFrames:UpdateUnitFrame(tFrame, unit)
 
   tFrame.wndUnitFrame:Show(unit ~= nil)
 
