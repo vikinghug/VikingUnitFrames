@@ -86,13 +86,6 @@ local tTargetMarkSpriteMap =
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
-local eTextStyle =
-{
-  None = 1,
-  Percent = 2,
-  Value = 3
-}
-
 local tColors = {
   black       = "141122",
   white       = "ffffff",
@@ -123,7 +116,10 @@ local tDefaultSettings =
       nOffsets = {40, -500, 250, -440}
     }
   },
-  textStyle = eTextStyle.Percent,
+  textStyle = {
+    Value = false,
+    Percent = true,
+  },
   colors = {
     Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
     Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
@@ -407,12 +403,14 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
       
-      if self.db.textStyle == eTextStyle.None then
-        wndText:SetText("")
-      elseif self.db.textStyle == eTextStyle.Value then
+      if self.db.textStyle["Value"] and self.db.textStyle["Percent"] then
+        wndText:SetText(string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
+      elseif self.db.textStyle["Value"] then
         wndText:SetText(nCurrent .. " / " .. nMax)
-      elseif self.db.textStyle == eTextStyle.Percent then
+      elseif self.db.textStyle["Percent"] then
         wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
+      else
+        wndText:SetText("")
       end
 
       local nLowBar     = 0.3
@@ -678,10 +676,11 @@ end
 
 function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   -- Text Style
-  local strTextStyle = VikingLib.GetKeyFromValue(eTextStyle, self.db.textStyle)
-  for k, v in pairs(eTextStyle) do 
-    local wndTextStyleButton = wndContainer:FindChild("TextStyle:Content:"..k)
-    if wndTextStyleButton then wndTextStyleButton:SetCheck(k == strTextStyle) end
+  if self.db.textStyle["Value"] then
+    wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(true)
+  end
+  if self.db.textStyle["Percent"] then
+    wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(true)
   end
 
   -- Bar colors
@@ -698,8 +697,8 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   end
 end
 
-function VikingUnitFrames:OnTextStyleBtnCheck( wndHandler, wndControl, eMouseButton )
-  self.db.textStyle = eTextStyle[wndControl:GetName()]
+function VikingUnitFrames:OnTextStyleBtnCheck(wndHandler, wndControl, eMouseButton)
+  self.db.textStyle[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 function VikingUnitFrames:OnSettingsBarColor( wndHandler, wndControl, eMouseButton )
