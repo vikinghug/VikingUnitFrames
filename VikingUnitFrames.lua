@@ -262,6 +262,9 @@ function VikingUnitFrames:OnCharacterLoaded()
 
   -- Target Frame
   self.tTargetFrame = self:CreateUnitFrame("Target")
+  if GameLib.GetTargetUnit() ~= nil then
+    self:OnTargetUnitChanged(GameLib.GetTargetUnit())
+  end
 
   -- Focus Frame
   self.tFocusFrame = self:CreateUnitFrame("Focus")
