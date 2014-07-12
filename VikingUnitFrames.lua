@@ -273,7 +273,7 @@ end
 
 
 local LoadingTimer
-function VikingUnitFrames:OnWorldChanged(tFrame)
+function VikingUnitFrames:OnWorldChanged()
   self:OnRequiredFlagsChanged()
 
   LoadingTimer = ApolloTimer.Create(0.01, true, "OnLoading", self)
