@@ -676,12 +676,8 @@ end
 
 function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   -- Text Style
-  if self.db.textStyle["Value"] then
-    wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(true)
-  end
-  if self.db.textStyle["Percent"] then
-    wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(true)
-  end
+  wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.textStyle["Value"])
+  wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.textStyle["Percent"])
 
   -- Bar colors
   for strBarName, tBarColorData in pairs(self.db.colors) do
