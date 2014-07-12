@@ -245,6 +245,7 @@ function VikingUnitFrames:OnCharacterLoaded()
   if VikingLib ~= nil then
     VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", tDefaultSettings)
     self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
+    self.generalDb = VikingLib.Settings.GetDatabase("General")
   end
 
   -- PlayerFrame
@@ -489,7 +490,7 @@ function VikingUnitFrames:SetDisposition(tFrame, targetUnit)
   tFrame.disposition = targetUnit:GetDispositionTo(self.tPlayerFrame.unit)
 
 
-  local dispositionColor = ApolloColor.new(self.db.General.dispositionColors[tFrame.disposition])
+  local dispositionColor = ApolloColor.new(self.generalDb.dispositionColors[tFrame.disposition])
   tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetTextColor(dispositionColor)
 end
 
@@ -544,11 +545,11 @@ function VikingUnitFrames:InitColors(tFrame)
   local colors = {
     background = {
       wnd   = tFrame.wndUnitFrame:FindChild("Background"),
-      color = ApolloColor.new(self.db.General.colors.background)
+      color = ApolloColor.new(self.generalDb.colors.background)
     },
     gradient = {
       wnd   = tFrame.wndUnitFrame,
-      color = ApolloColor.new(self.db.General.colors.gradient)
+      color = ApolloColor.new(self.generalDb.colors.gradient)
     }
   }
 
