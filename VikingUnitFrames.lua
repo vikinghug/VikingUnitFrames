@@ -509,6 +509,7 @@ function VikingUnitFrames:SetUnit(tFrame, unit)
 
   -- Set the Data to the unit, for mouse events
   tFrame.wndUnitFrame:SetData(tFrame.unit)
+
 end
 
 
@@ -649,8 +650,8 @@ end
 -- UnitFrame Functions
 ---------------------------------------------------------------------------------------------------
 
-function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
-  if wndHandler ~= wndControl then return end
+function VikingUnitFrames:OnMouseButtonUp( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
+    if wndHandler ~= wndControl then return end
   local unit = wndHandler:GetData()
 
   if eMouseButton == GameLib.CodeEnumInputMouse.Left and unit ~= nil then
@@ -663,7 +664,6 @@ function VikingUnitFrames:OnMouseButtonDown( wndHandler, wndControl, eMouseButto
     Event_FireGenericEvent("GenericEvent_NewContextMenuPlayerDetailed", nil, unit:GetName(), unit)
   end
 end
-
 
 function VikingUnitFrames:OnGenerateBuffTooltip(wndHandler, wndControl, tType, splBuff)
   if wndHandler == wndControl then
