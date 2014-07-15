@@ -189,7 +189,7 @@ end
 
 function VikingUnitFrames:GetDefaults()
 
-  tDefaultSettings = {
+  return {
     style = 0,
     position = {
       playerFrame = {
@@ -215,6 +215,7 @@ function VikingUnitFrames:GetDefaults()
       Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
     }
   }
+
 end
 
 --
@@ -233,7 +234,7 @@ function VikingUnitFrames:OnCharacterLoaded()
 
   if VikingLib ~= nil then
 
-    local defaults = self:GetDefaults()
+    tDefaultSettings = self:GetDefaults()
 
     VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", "Unit Frames", tDefaultSettings)
     self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
