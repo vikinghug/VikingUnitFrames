@@ -53,8 +53,7 @@ local tClassName = {
 }
 
 
-local tClassToSpriteMap =
-{
+local tClassToSpriteMap = {
   [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
   [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
   [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
@@ -74,8 +73,7 @@ local tRankToSpriteMap = {
 }
 
 
-local tTargetMarkSpriteMap =
-{
+local tTargetMarkSpriteMap = {
   "Icon_Windows_UI_CRB_Marker_Bomb",
   "Icon_Windows_UI_CRB_Marker_Ghost",
   "Icon_Windows_UI_CRB_Marker_Mask",
@@ -86,46 +84,7 @@ local tTargetMarkSpriteMap =
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
-local tColors = {
-  black       = "141122",
-  white       = "ffffff",
-  lightGrey   = "bcb7da",
-  green       = "1fd865",
-  yellow      = "ffd161",
-  orange      = "e08457",
-  lightPurple = "645f7e",
-  purple      = "2b273d",
-  red         = "e05757",
-  blue        = "4ae8ee"
-}
-
-local tDefaultSettings = 
-{
-  style = 0,
-  position = {
-    playerFrame = {
-      fPoints  = {0.5, 1, 0.5, 1},
-      nOffsets = {-350, -200, -100, -120}
-    },
-    targetFrame = {
-      fPoints  = {0.5, 1, 0.5, 1},
-      nOffsets = {100, -200, 350, -120}
-    },
-    focusFrame = {
-      fPoints  = {0, 1, 0, 1},
-      nOffsets = {40, -500, 250, -440}
-    }
-  },
-  textStyle = {
-    Value = false,
-    Percent = true,
-  },
-  colors = {
-    Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
-    Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
-    Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
-  }
-}
+local tDefaultSettings
 
 function VikingUnitFrames:new(o)
   o = o or {}
@@ -228,6 +187,36 @@ function VikingUnitFrames:CreateUnitFrame(name)
 end
 
 
+function VikingUnitFrames:GetDefaults()
+
+  tDefaultSettings = {
+    style = 0,
+    position = {
+      playerFrame = {
+        fPoints  = {0.5, 1, 0.5, 1},
+        nOffsets = {-350, -200, -100, -120}
+      },
+      targetFrame = {
+        fPoints  = {0.5, 1, 0.5, 1},
+        nOffsets = {100, -200, 350, -120}
+      },
+      focusFrame = {
+        fPoints  = {0, 1, 0, 1},
+        nOffsets = {40, -500, 250, -440}
+      }
+    },
+    textStyle = {
+      Value = false,
+      Percent = true,
+    },
+    colors = {
+      Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
+      Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
+      Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
+    }
+  }
+end
+
 --
 -- OnCharacterLoaded
 --
@@ -243,6 +232,9 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
+
+    local defaults = self:GetDefaults()
+
     VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", "Unit Frames", tDefaultSettings)
     self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
     self.generalDb = VikingLib.Settings.GetDatabase("General")
@@ -402,7 +394,7 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
 
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
-      
+
       if self.db.textStyle["Value"] and self.db.textStyle["Percent"] then
         wndText:SetText(string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
       elseif self.db.textStyle["Value"] then
