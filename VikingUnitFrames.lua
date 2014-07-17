@@ -390,9 +390,9 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local wndBar          = tFrame["wnd" .. tMap.bar .. "Bar"]
     local wndProgress     = wndBar:FindChild("ProgressBar")
     local wndText         = wndBar:FindChild("Text")
-    local strProgressMax  = self:HelperFormatBigNumber(nMax)
-    local strProgressCurr = self:HelperFormatBigNumber(nCurrent)
-    local strText         = ""
+    local sProgressMax  = self:HelperFormatBigNumber(nMax)
+    local sProgressCurr = self:HelperFormatBigNumber(nCurrent)
+    local sText         = ""
 
 
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
@@ -406,22 +406,22 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       -- Set text
       if self.db.textStyle["Value"] and self.db.textStyle["Percent"] then
         if self.db.textStyle["BigNumberFormat"] then
-          strText = (string.format("%s/%s (%d%%)", strProgressCurr, strProgressMax, math.floor(nCurrent  / nMax * 100)))
+          sText = (string.format("%s/%s (%d%%)", sProgressCurr, sProgressMax, math.floor(nCurrent  / nMax * 100)))
         else
-          strText = (string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
+          sText = (string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
         end
       elseif self.db.textStyle["Value"] then
         if self.db.textStyle["BigNumberFormat"] then
-          strText = strProgressCurr .. "/" .. strProgressMax
+          sText = sProgressCurr .. "/" .. sProgressMax
         else
-          strText = nCurrent .. "/" .. nMax
+          sText = nCurrent .. "/" .. nMax
         end
       elseif self.db.textStyle["Percent"] then
-        strText = (math.floor(nCurrent  / nMax * 100) .. "%")
+        sText = math.floor(nCurrent  / nMax * 100) .. "%"
       else
-        strText = ""
+        sText = ""
       end
-      wndText:SetText(strText)
+      wndText:SetText(sText)
 
       local nLowBar     = 0.3
       local nAverageBar = 0.5
@@ -448,30 +448,31 @@ function VikingUnitFrames:HelperFormatBigNumber(nArg)
   --Kept localised strings
   if nArg ~= nil then
     if nArg < 1000 then
-      strResult = tostring(nArg)
+      sResult = tostring(nArg)
     elseif nArg < 1000000 then
-      if math.floor(nArg%1000/100) == 0 then
-        strResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberWhole"), math.floor(nArg / 1000))
+      if math.floor(nArg % 1000 / 100) == 0 then
+        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberWhole"), math.floor(nArg / 1000))
       else
-        strResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberFloat"), nArg / 1000)
+        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberFloat"), nArg / 1000)
       end
+      Print(sResult)
     elseif nArg < 1000000000 then
-      if math.floor(nArg%1000000/100000) == 0 then
-        strResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberWhole"), math.floor(nArg / 1000000))
+      if math.floor(nArg % 1000000 / 100000) == 0 then
+        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberWhole"), math.floor(nArg / 1000000))
       else
-        strResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberFloat"), nArg / 1000000)
+        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberFloat"), nArg / 1000000)
       end
     elseif nArg < 1000000000000 then
-      if math.floor(nArg%1000000/100000) == 0 then
-        strResult = String_GetWeaselString(Apollo.GetString("TargetFrame_BillionsNumberWhole"), math.floor(nArg / 1000000))
+      if math.floor(nArg % 1000000 / 100000) == 0 then
+        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_BillionsNumberWhole"), math.floor(nArg / 1000000))
       else
-        strResult = String_GetWeaselString(Apollo.GetString("TargetFrame_BillionsNumberFloat"), nArg / 1000000)
+        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_BillionsNumberFloat"), nArg / 1000000)
       end
     else
-      strResult = tostring(nArg)
+      sResult = tostring(nArg)
     end
   end
-  return strResult
+  return sResult
 end
 
 
@@ -483,22 +484,22 @@ end
 
 function VikingUnitFrames:SetClass(tFrame)
 
-    local strPlayerIconSprite, strRankIconSprite, locNameText
+    local sPlayerIconSprite, sRankIconSprite, locNameText
     local sUnitType = tFrame.unit:GetType()
 
     if sUnitType == "Player" then
       locNameText         = { 24, 0, -30, 26 }
-      strRankIconSprite   = ""
-      strPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
+      sRankIconSprite   = ""
+      sPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
     else
       locNameText         = { 34, 0, -30, 26 }
-      strPlayerIconSprite = ""
-      strRankIconSprite   = tRankToSpriteMap[tFrame.unit:GetRank()]
+      sPlayerIconSprite = ""
+      sRankIconSprite   = tRankToSpriteMap[tFrame.unit:GetRank()]
     end
 
     tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetAnchorOffsets(locNameText[1], locNameText[2], locNameText[3], locNameText[4])
-    tFrame.wndUnitFrame:FindChild("TargetInfo:ClassIcon"):SetSprite(strPlayerIconSprite)
-    tFrame.wndUnitFrame:FindChild("TargetInfo:RankIcon"):SetSprite(strRankIconSprite)
+    tFrame.wndUnitFrame:FindChild("TargetInfo:ClassIcon"):SetSprite(sPlayerIconSprite)
+    tFrame.wndUnitFrame:FindChild("TargetInfo:RankIcon"):SetSprite(sRankIconSprite)
 
 end
 
@@ -727,14 +728,14 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("CastBar:Content:CastBarShow"):SetCheck(self.db.CastBar["CastBarShow"])
 
   -- Bar colors
-  for strBarName, tBarColorData in pairs(self.db.colors) do
-    local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
+  for sBarName, tBarColorData in pairs(self.db.colors) do
+    local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
 
     if wndColorContainer then
-      for strColorState, strColor in pairs(tBarColorData) do
-        local wndColor = wndColorContainer:FindChild(strColorState)
+      for sColorState, sColor in pairs(tBarColorData) do
+        local wndColor = wndColorContainer:FindChild(sColorState)
 
-        if wndColor then wndColor:SetBGColor(strColor) end
+        if wndColor then wndColor:SetBGColor(sColor) end
       end
     end
   end
