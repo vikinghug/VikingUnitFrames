@@ -117,7 +117,7 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
 
   Apollo.RegisterSlashCommand("focus", "OnFocusSlashCommand", self)
-  Apollo.RegisterSlashCommand("target", "OnFocusSlashCommand", self)
+  Apollo.RegisterSlashCommand("targetfocus", "OnTargetfocusSlashCommand", self)
 
   self.bDocLoaded = true
   self:OnRequiredFlagsChanged()
@@ -317,6 +317,12 @@ function VikingUnitFrames:OnFocusSlashCommand()
   local unitTarget = GameLib.GetTargetUnit()
 
   GameLib.GetPlayerUnit():SetAlternateTarget(unitTarget)
+end
+
+function VikingUnitFrames:OnTargetfocusSlashCommand()
+  local unitTarget = GameLib.GetPlayerUnit():GetAlternateTarget()
+
+   GameLib.SetTargetUnit(unitTarget)
 end
 
 --
