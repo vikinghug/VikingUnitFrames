@@ -367,10 +367,7 @@ function VikingUnitFrames:UpdateBars(tFrame)
     max     = "GetAbsorptionMax"
   }
 
-  --CastBar Option
-  if self.db.CastBar["CastBarShow"] then
-    self:ShowCastBar(tFrame)
-  end
+  self:ShowCastBar(tFrame)
   self:SetBar(tFrame, tHealthMap)
   self:SetBar(tFrame, tShieldMap)
   self:SetBar(tFrame, tAbsorbMap)
@@ -384,12 +381,12 @@ end
 
 function VikingUnitFrames:SetBar(tFrame, tMap)
   if tFrame.unit ~= nil and tMap ~= nil then
-    local unit            = tFrame.unit
-    local nCurrent        = unit[tMap.current](unit)
-    local nMax            = unit[tMap.max](unit)
-    local wndBar          = tFrame["wnd" .. tMap.bar .. "Bar"]
-    local wndProgress     = wndBar:FindChild("ProgressBar")
-    local wndText         = wndBar:FindChild("Text")
+    local unit          = tFrame.unit
+    local nCurrent      = unit[tMap.current](unit)
+    local nMax          = unit[tMap.max](unit)
+    local wndBar        = tFrame["wnd" .. tMap.bar .. "Bar"]
+    local wndProgress   = wndBar:FindChild("ProgressBar")
+    local wndText       = wndBar:FindChild("Text")
     local sProgressMax  = self:HelperFormatBigNumber(nMax)
     local sProgressCurr = self:HelperFormatBigNumber(nCurrent)
     local sText         = ""
@@ -610,7 +607,7 @@ end
 function VikingUnitFrames:ShowCastBar(tFrame)
 
   -- If no unit then don't do anything
-  if tFrame.unit == nil then return end
+  if tFrame.unit == nil or self.db.CastBar["CastBarShow"] == false then return end
 
   local unit = tFrame.unit
   local bCasting = unit:ShouldShowCastBar()
