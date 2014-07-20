@@ -1,4 +1,4 @@
-<Addon Name="VikingUnitFrames" Version="0.2.0" Author="VikinghugUI" APIVersion="9" Description="">
+<Addon Name="VikingUnitFrames" Version="0.1.1" Author="VikinghugUI" APIVersion="9" Description="">
     <Script Name="VikingUnitFrames.lua"/>
     <Form Name="VikingUnitFrames.xml"/>
     <Form Name="TargetRewardPanel.xml"/>

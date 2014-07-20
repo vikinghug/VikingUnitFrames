@@ -387,6 +387,9 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     --Temp fix until VikingSettings work for changing healthText display option
     local nVisibility = Apollo.GetConsoleVariable("hud.healthTextDisplay")
 
+    if tMap.bar == "Shield" and nCurrent > nMax then
+      nCurrent = nMax
+    end
 
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
     wndBar:Show(isValidBar, false)
