@@ -84,8 +84,6 @@ local tTargetMarkSpriteMap = {
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
-local tDefaultSettings
-
 function VikingUnitFrames:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -178,7 +176,7 @@ function VikingUnitFrames:CreateUnitFrame(name)
 
   tFrame.wndUnitFrame:SetSizingMinimum(140, 60)
 
-  tFrame.locDefaultPosition = WindowLocation.new(self.db.position[name:lower() .. "Frame"])
+  tFrame.locDefaultPosition = WindowLocation.new(self.db.char.position[name:lower() .. "Frame"])
   tFrame.wndUnitFrame:MoveToLocation(tFrame.locDefaultPosition)
   self:InitColors(tFrame)
 
@@ -189,30 +187,34 @@ end
 
 function VikingUnitFrames:GetDefaults()
 
+  local tColors = VikingLib.Settings.GetColors()
+
   return {
-    style = 0,
-    position = {
-      playerFrame = {
-        fPoints  = {0.5, 1, 0.5, 1},
-        nOffsets = {-350, -200, -100, -120}
+    char = {
+      style = 0,
+      position = {
+        playerFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {-350, -200, -100, -120}
+        },
+        targetFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {100, -200, 350, -120}
+        },
+        focusFrame = {
+          fPoints  = {0, 1, 0, 1},
+          nOffsets = {40, -500, 250, -440}
+        }
       },
-      targetFrame = {
-        fPoints  = {0.5, 1, 0.5, 1},
-        nOffsets = {100, -200, 350, -120}
+      textStyle = {
+        Value = false,
+        Percent = true,
       },
-      focusFrame = {
-        fPoints  = {0, 1, 0, 1},
-        nOffsets = {40, -500, 250, -440}
+      colors = {
+        Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
+        Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
+        Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
       }
-    },
-    textStyle = {
-      Value = false,
-      Percent = true,
-    },
-    colors = {
-      Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
-      Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
-      Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
     }
   }
 
@@ -233,12 +235,8 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
-
-    tDefaultSettings = self:GetDefaults()
-
-    VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", "Unit Frames", tDefaultSettings)
-    self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
-    self.generalDb = VikingLib.Settings.GetDatabase("General")
+    self.db = VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", self:GetDefaults(), "Unit Frames")
+    self.generalDb = self.db.parent
   end
 
   -- PlayerFrame
@@ -396,11 +394,11 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
 
-      if self.db.textStyle["Value"] and self.db.textStyle["Percent"] then
+      if self.db.char.textStyle["Value"] and self.db.char.textStyle["Percent"] then
         wndText:SetText(string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
-      elseif self.db.textStyle["Value"] then
+      elseif self.db.char.textStyle["Value"] then
         wndText:SetText(nCurrent .. " / " .. nMax)
-      elseif self.db.textStyle["Percent"] then
+      elseif self.db.char.textStyle["Percent"] then
         wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
       else
         wndText:SetText("")
@@ -410,7 +408,7 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       local nAverageBar = 0.5
 
       -- Set our bar color based on the percent full
-      local tColors = self.db.colors[tMap.bar]
+      local tColors = self.db.char.colors[tMap.bar]
       local color   = tColors.high
 
       if nCurrent / nMax <= nLowBar then
@@ -482,7 +480,7 @@ function VikingUnitFrames:SetDisposition(tFrame, targetUnit)
   tFrame.disposition = targetUnit:GetDispositionTo(self.tPlayerFrame.unit)
 
 
-  local dispositionColor = ApolloColor.new(self.generalDb.dispositionColors[tFrame.disposition])
+  local dispositionColor = ApolloColor.new(self.generalDb.char.dispositionColors[tFrame.disposition])
   tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetTextColor(dispositionColor)
 end
 
@@ -537,11 +535,11 @@ function VikingUnitFrames:InitColors(tFrame)
   local colors = {
     background = {
       wnd   = tFrame.wndUnitFrame:FindChild("Background"),
-      color = ApolloColor.new(self.generalDb.colors.background)
+      color = ApolloColor.new(self.generalDb.char.colors.background)
     },
     gradient = {
       wnd   = tFrame.wndUnitFrame,
-      color = ApolloColor.new(self.generalDb.colors.gradient)
+      color = ApolloColor.new(self.generalDb.char.colors.gradient)
     }
   }
 
@@ -669,11 +667,11 @@ end
 
 function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   -- Text Style
-  wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.textStyle["Value"])
-  wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.textStyle["Percent"])
+  wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.char.textStyle["Value"])
+  wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.char.textStyle["Percent"])
 
   -- Bar colors
-  for strBarName, tBarColorData in pairs(self.db.colors) do
+  for strBarName, tBarColorData in pairs(self.db.char.colors) do
     local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
 
     if wndColorContainer then
@@ -687,11 +685,11 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
 end
 
 function VikingUnitFrames:OnTextStyleBtnCheck(wndHandler, wndControl, eMouseButton)
-  self.db.textStyle[wndControl:GetName()] = wndControl:IsChecked()
+  self.db.char.textStyle[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 function VikingUnitFrames:OnSettingsBarColor( wndHandler, wndControl, eMouseButton )
-  VikingLib.Settings.ShowColorPickerForSetting(self.db.colors[wndControl:GetParent():GetName()], wndControl:GetName(), nil, wndControl)
+  VikingLib.Settings.ShowColorPickerForSetting(self.db.char.colors[wndControl:GetParent():GetName()], wndControl:GetName(), nil, wndControl)
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
