@@ -84,8 +84,6 @@ local tTargetMarkSpriteMap = {
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
-local tDefaultSettings
-
 function VikingUnitFrames:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -189,6 +187,8 @@ end
 
 function VikingUnitFrames:GetDefaults()
 
+  local tColors = VikingLib.Settings.GetColors()
+
   return {
     char = {
       style = 0,
@@ -235,10 +235,7 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
-
-    tDefaultSettings = self:GetDefaults()
-
-    self.db = VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", tDefaultSettings, "Unit Frames")
+    self.db = VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", self:GetDefaults(), "Unit Frames")
     self.generalDb = self.db.parent
   end
 
