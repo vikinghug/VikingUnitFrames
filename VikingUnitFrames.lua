@@ -452,7 +452,6 @@ function VikingUnitFrames:HelperFormatBigNumber(nArg)
       else
         sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberFloat"), nArg / 1000)
       end
-      Print(sResult)
     elseif nArg < 1000000000 then
       if math.floor(nArg % 1000000 / 100000) == 0 then
         sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberWhole"), math.floor(nArg / 1000000))
