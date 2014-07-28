@@ -736,7 +736,7 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
 end
 
 
-function VikingUnitFrames:OnTextStyleBtnCheck(wndHandler, wndControl, eMouseButton)
+function VikingUnitFrames:OnSettingsTextStyle(wndHandler, wndControl, eMouseButton)
   self.db.char.textStyle[wndControl:GetName()] = wndControl:IsChecked()
 end
 
