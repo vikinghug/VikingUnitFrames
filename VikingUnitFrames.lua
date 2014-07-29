@@ -173,6 +173,7 @@ function VikingUnitFrames:CreateUnitFrame(name)
     wndAbsorbBar  = wndUnitFrame:FindChild("Bars:Absorb"),
     wndCastBar    = wndUnitFrame:FindChild("Bars:Cast"),
     wndTargetMark = wndUnitFrame:FindChild("TargetExtra:Mark"),
+    wndInterrupt  = wndUnitFrame:FindChild("TargetExtra:InterruptArmor"),
     bCasting      = false
   }
 
@@ -322,10 +323,12 @@ function VikingUnitFrames:OnFrame()
 
     -- UnitFrame
     self:UpdateBars(self.tPlayerFrame)
+    self:SetInterruptArmor(self.tPlayerFrame)
 
     -- TargetFrame
     self:UpdateBars(self.tTargetFrame)
     self:SetUnitLevel(self.tTargetFrame)
+    self:SetInterruptArmor(self.tTargetFrame)
 
     -- FocusFrame
     self:UpdateBars(self.tFocusFrame)
@@ -525,6 +528,29 @@ function VikingUnitFrames:SetUnitLevel(tFrame)
   tFrame.wndUnitFrame:FindChild("UnitLevel"):SetText(sLevel)
 end
 
+--
+-- SetInterruptArmor
+--
+-- Set Level on UnitFrame
+
+function VikingUnitFrames:SetInterruptArmor(tFrame)
+  if tFrame.unit == nil then return end
+
+  local bShowInterrupt         = true
+  local bIsDead                = tFrame.unit:IsDead()
+  local nInterruptArmorCurrent = tFrame.unit:GetInterruptArmorValue()
+  local nInterruptArmorMax     = tFrame.unit:GetInterruptArmorMax()
+
+  if nInterruptArmorMax == 0 or nInterruptArmorCurrent == nil or bIsDead then
+    bShowInterrupt = false
+  end
+
+  tFrame.wndInterrupt:Show(bShowInterrupt, false)
+
+  if not bShowInterrupt then return end
+
+  tFrame.wndInterrupt:FindChild("Text"):SetText(nInterruptArmorCurrent)
+end
 
 
 --
@@ -541,6 +567,10 @@ function VikingUnitFrames:InitColors(tFrame)
     },
     gradient = {
       wnd   = tFrame.wndUnitFrame,
+      color = ApolloColor.new(self.generalDb.colors.gradient)
+    },
+    interrupt = {
+      wnd   = tFrame.wndInterrupt,
       color = ApolloColor.new(self.generalDb.colors.gradient)
     }
   }
