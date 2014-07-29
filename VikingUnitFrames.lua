@@ -333,6 +333,7 @@ function VikingUnitFrames:OnFrame()
     -- FocusFrame
     self:UpdateBars(self.tFocusFrame)
     self:SetUnitLevel(self.tFocusFrame)
+    self:SetInterruptArmor(self.tFocusFrame)
 
 
   end
