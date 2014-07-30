@@ -85,14 +85,28 @@
                   <folding>
                     <element signature="n#VikingUnitFrames:Init#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:OnLoad#0" expanded="true" />
-                    <element signature="n#VikingUnitFrames:OnWindowManagementReady#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:OnDocumentReady#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:OnRequiredFlagsChanged#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:OnWindowManagementUpdate#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:OnUnitLevelChange#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:OnUnitLevelChange#1" expanded="true" />
                     <element signature="n#VikingUnitFrames:GetDefaults#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:GetDefaults#1" expanded="true" />
+                    <element signature="n#VikingUnitFrames:OnCharacterLoaded#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:OnLoading#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:OnLoading#1" expanded="true" />
+                    <element signature="n#VikingUnitFrames:OnTargetUnitChanged#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:UpdateUnitFrame#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:OnFocusSlashCommand#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:OnFrame#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:UpdateBars#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetBar#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetClass#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetTargetMark#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetDisposition#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetUnit#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetUnitName#0" expanded="true" />
+                    <element signature="n#VikingUnitFrames:SetUnitLevel#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:InitColors#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:ShowCastBar#0" expanded="true" />
                     <element signature="n#VikingUnitFrames:UpdateCastBar#0" expanded="true" />
@@ -124,6 +138,7 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/VikingUnitFrames.lua" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -405,6 +420,14 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8282051" vertical-offset="0" max-vertical-offset="780">
+          <caret line="38" column="7" selection-start-line="38" selection-start-column="7" selection-end-line="38" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/VikingUnitFrames.lua">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.7327249" vertical-offset="6102" max-vertical-offset="12036">
