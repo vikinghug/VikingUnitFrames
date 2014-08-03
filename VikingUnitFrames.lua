@@ -84,8 +84,6 @@ local tTargetMarkSpriteMap = {
   "Icon_Windows_UI_CRB_Marker_UFO"
 }
 
-local tDefaultSettings
-
 function VikingUnitFrames:new(o)
   o = o or {}
   setmetatable(o, self)
@@ -115,6 +113,9 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
+
+  Apollo.RegisterSlashCommand("focus", "OnFocusSlashCommand", self)
+  Apollo.RegisterSlashCommand("targetfocus", "OnTargetfocusSlashCommand", self)
 
   self.bDocLoaded = true
   self:OnRequiredFlagsChanged()
@@ -173,12 +174,13 @@ function VikingUnitFrames:CreateUnitFrame(name)
     wndAbsorbBar  = wndUnitFrame:FindChild("Bars:Absorb"),
     wndCastBar    = wndUnitFrame:FindChild("Bars:Cast"),
     wndTargetMark = wndUnitFrame:FindChild("TargetExtra:Mark"),
+    wndInterrupt  = wndUnitFrame:FindChild("TargetExtra:InterruptArmor"),
     bCasting      = false
   }
 
   tFrame.wndUnitFrame:SetSizingMinimum(140, 60)
 
-  tFrame.locDefaultPosition = WindowLocation.new(self.db.position[name:lower() .. "Frame"])
+  tFrame.locDefaultPosition = WindowLocation.new(self.db.char.position[name:lower() .. "Frame"])
   tFrame.wndUnitFrame:MoveToLocation(tFrame.locDefaultPosition)
   self:InitColors(tFrame)
 
@@ -189,30 +191,40 @@ end
 
 function VikingUnitFrames:GetDefaults()
 
+  local tColors = VikingLib.Settings.GetColors()
+
   return {
-    style = 0,
-    position = {
-      playerFrame = {
-        fPoints  = {0.5, 1, 0.5, 1},
-        nOffsets = {-350, -200, -100, -120}
+    char = {
+      style = 0,
+      position = {
+        playerFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {-350, -200, -100, -120}
+        },
+        targetFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {100, -200, 350, -120}
+        },
+        focusFrame = {
+          fPoints  = {0, 1, 0, 1},
+          nOffsets = {40, -500, 250, -440}
+        }
       },
-      targetFrame = {
-        fPoints  = {0.5, 1, 0.5, 1},
-        nOffsets = {100, -200, 350, -120}
+      textStyle = {
+        Value = false,
+        Percent = true,
+        BigNumberFormat = false,
       },
-      focusFrame = {
-        fPoints  = {0, 1, 0, 1},
-        nOffsets = {40, -500, 250, -440}
+      castBar = {
+        PlayerCastBar = true,
+        TargetCastBar = true,
+        FocusCastBar  = true,
+      },
+      colors = {
+        Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
+        Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
+        Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
       }
-    },
-    textStyle = {
-      Value = false,
-      Percent = true,
-    },
-    colors = {
-      Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
-      Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
-      Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
     }
   }
 
@@ -233,12 +245,8 @@ function VikingUnitFrames:OnCharacterLoaded()
   end
 
   if VikingLib ~= nil then
-
-    tDefaultSettings = self:GetDefaults()
-
-    VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", "Unit Frames", tDefaultSettings)
-    self.db = VikingLib.Settings.GetDatabase("VikingUnitFrames")
-    self.generalDb = VikingLib.Settings.GetDatabase("General")
+    self.db = VikingLib.Settings.RegisterSettings(self, "VikingUnitFrames", self:GetDefaults(), "Unit Frames")
+    self.generalDb = self.db.parent
   end
 
   -- PlayerFrame
@@ -310,6 +318,18 @@ function VikingUnitFrames:UpdateUnitFrame(tFrame, unit)
 
 end
 
+function VikingUnitFrames:OnFocusSlashCommand()
+  local unitTarget = GameLib.GetTargetUnit()
+
+  GameLib.GetPlayerUnit():SetAlternateTarget(unitTarget)
+end
+
+function VikingUnitFrames:OnTargetfocusSlashCommand()
+  local unitTarget = GameLib.GetPlayerUnit():GetAlternateTarget()
+
+   GameLib.SetTargetUnit(unitTarget)
+end
+
 --
 -- OnFrame
 --
@@ -322,14 +342,17 @@ function VikingUnitFrames:OnFrame()
 
     -- UnitFrame
     self:UpdateBars(self.tPlayerFrame)
+    self:SetInterruptArmor(self.tPlayerFrame)
 
     -- TargetFrame
     self:UpdateBars(self.tTargetFrame)
     self:SetUnitLevel(self.tTargetFrame)
+    self:SetInterruptArmor(self.tTargetFrame)
 
     -- FocusFrame
     self:UpdateBars(self.tFocusFrame)
     self:SetUnitLevel(self.tFocusFrame)
+    self:SetInterruptArmor(self.tFocusFrame)
 
 
   end
@@ -383,9 +406,9 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local wndBar        = tFrame["wnd" .. tMap.bar .. "Bar"]
     local wndProgress   = wndBar:FindChild("ProgressBar")
     local wndText       = wndBar:FindChild("Text")
-
-    --Temp fix until VikingSettings work for changing healthText display option
-    local nVisibility = Apollo.GetConsoleVariable("hud.healthTextDisplay")
+    local sProgressMax  = self:NumberToHuman(nMax)
+    local sProgressCurr = self:NumberToHuman(nCurrent)
+    local sText         = ""
 
 
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
@@ -396,21 +419,31 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       wndProgress:SetMax(nMax)
       wndProgress:SetProgress(nCurrent)
 
-      if self.db.textStyle["Value"] and self.db.textStyle["Percent"] then
-        wndText:SetText(string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
-      elseif self.db.textStyle["Value"] then
-        wndText:SetText(nCurrent .. " / " .. nMax)
-      elseif self.db.textStyle["Percent"] then
-        wndText:SetText(math.floor(nCurrent  / nMax * 100) .. "%")
+      -- Set text
+      if self.db.char.textStyle["Value"] and self.db.char.textStyle["Percent"] then
+        if self.db.char.textStyle["BigNumberFormat"] then
+          sText = (string.format("%s/%s (%d%%)", sProgressCurr, sProgressMax, math.floor(nCurrent  / nMax * 100)))
+        else
+          sText = (string.format("%d/%d (%d%%)", nCurrent, nMax, math.floor(nCurrent  / nMax * 100)))
+        end
+      elseif self.db.char.textStyle["Value"] then
+        if self.db.char.textStyle["BigNumberFormat"] then
+          sText = sProgressCurr .. "/" .. sProgressMax
+        else
+          sText = nCurrent .. "/" .. nMax
+        end
+      elseif self.db.char.textStyle["Percent"] then
+        sText = math.floor(nCurrent  / nMax * 100) .. "%"
       else
-        wndText:SetText("")
+        sText = ""
       end
+      wndText:SetText(sText)
 
       local nLowBar     = 0.3
       local nAverageBar = 0.5
 
       -- Set our bar color based on the percent full
-      local tColors = self.db.colors[tMap.bar]
+      local tColors = self.db.char.colors[tMap.bar]
       local color   = tColors.high
 
       if nCurrent / nMax <= nLowBar then
@@ -418,10 +451,36 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       elseif nCurrent / nMax <= nAverageBar then
         color = tColors.average
       end
-
       wndProgress:SetBarColor(ApolloColor.new(color))
     end
   end
+end
+
+-- Number formating
+--
+--Uses k instead of 1000
+
+function VikingUnitFrames:NumberToHuman(num)
+  if num ~= nil and num > 999 then
+    local decimalPlaces = 10^1
+    local roundedNum    = math.floor(num)
+    local sizes = {
+      ['Billions'] = 1000000000,
+      ['Millions'] = 1000000,
+      ['Short']    = 1000,
+    }
+
+    for abbrev, size in pairs(sizes) do
+      if roundedNum >= size then
+        local number = math.floor(roundedNum * decimalPlaces / size) / decimalPlaces
+        local sType  = number % 1 ~= 0 and "Float" or "Whole"
+        local sFormatString = Apollo.GetString('TargetFrame_' .. abbrev .. 'Number' .. sType)
+
+        return String_GetWeaselString(sFormatString, number)
+      end
+    end
+  end
+  return num
 end
 
 
@@ -433,22 +492,22 @@ end
 
 function VikingUnitFrames:SetClass(tFrame)
 
-    local strPlayerIconSprite, strRankIconSprite, locNameText
+    local sPlayerIconSprite, sRankIconSprite, locNameText
     local sUnitType = tFrame.unit:GetType()
 
     if sUnitType == "Player" then
       locNameText         = { 24, 0, -30, 26 }
-      strRankIconSprite   = ""
-      strPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
+      sRankIconSprite   = ""
+      sPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
     else
       locNameText         = { 34, 0, -30, 26 }
-      strPlayerIconSprite = ""
-      strRankIconSprite   = tRankToSpriteMap[tFrame.unit:GetRank()]
+      sPlayerIconSprite = ""
+      sRankIconSprite   = tRankToSpriteMap[tFrame.unit:GetRank()]
     end
 
     tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetAnchorOffsets(locNameText[1], locNameText[2], locNameText[3], locNameText[4])
-    tFrame.wndUnitFrame:FindChild("TargetInfo:ClassIcon"):SetSprite(strPlayerIconSprite)
-    tFrame.wndUnitFrame:FindChild("TargetInfo:RankIcon"):SetSprite(strRankIconSprite)
+    tFrame.wndUnitFrame:FindChild("TargetInfo:ClassIcon"):SetSprite(sPlayerIconSprite)
+    tFrame.wndUnitFrame:FindChild("TargetInfo:RankIcon"):SetSprite(sRankIconSprite)
 
 end
 
@@ -482,7 +541,7 @@ function VikingUnitFrames:SetDisposition(tFrame, targetUnit)
   tFrame.disposition = targetUnit:GetDispositionTo(self.tPlayerFrame.unit)
 
 
-  local dispositionColor = ApolloColor.new(self.generalDb.dispositionColors[tFrame.disposition])
+  local dispositionColor = ApolloColor.new(self.generalDb.char.dispositionColors[tFrame.disposition])
   tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetTextColor(dispositionColor)
 end
 
@@ -525,6 +584,29 @@ function VikingUnitFrames:SetUnitLevel(tFrame)
   tFrame.wndUnitFrame:FindChild("UnitLevel"):SetText(sLevel)
 end
 
+--
+-- SetInterruptArmor
+--
+-- Set Level on UnitFrame
+
+function VikingUnitFrames:SetInterruptArmor(tFrame)
+  if tFrame.unit == nil then return end
+
+  local bShowInterrupt         = true
+  local bIsDead                = tFrame.unit:IsDead()
+  local nInterruptArmorCurrent = tFrame.unit:GetInterruptArmorValue()
+  local nInterruptArmorMax     = tFrame.unit:GetInterruptArmorMax()
+
+  if nInterruptArmorMax == 0 or nInterruptArmorCurrent == nil or bIsDead then
+    bShowInterrupt = false
+  end
+
+  tFrame.wndInterrupt:Show(bShowInterrupt, false)
+
+  if not bShowInterrupt then return end
+
+  tFrame.wndInterrupt:FindChild("Text"):SetText(nInterruptArmorCurrent)
+end
 
 
 --
@@ -537,11 +619,15 @@ function VikingUnitFrames:InitColors(tFrame)
   local colors = {
     background = {
       wnd   = tFrame.wndUnitFrame:FindChild("Background"),
-      color = ApolloColor.new(self.generalDb.colors.background)
+      color = ApolloColor.new(self.generalDb.char.colors.background)
     },
     gradient = {
       wnd   = tFrame.wndUnitFrame,
-      color = ApolloColor.new(self.generalDb.colors.gradient)
+      color = ApolloColor.new(self.generalDb.char.colors.gradient)
+    },
+    interrupt = {
+      wnd   = tFrame.wndInterrupt,
+      color = ApolloColor.new(self.generalDb.char.colors.gradient)
     }
   }
 
@@ -561,9 +647,19 @@ function VikingUnitFrames:ShowCastBar(tFrame)
   -- If no unit then don't do anything
   if tFrame.unit == nil then return end
 
-  local unit = tFrame.unit
-  local bCasting = unit:ShouldShowCastBar()
-  self:UpdateCastBar(tFrame, bCasting)
+  local bStopCast    = false
+  local bCasting     = tFrame.unit:ShouldShowCastBar()
+  local bShowCastBar = self.db.char.castBar[tFrame.name .. "CastBar"]
+
+
+  if bShowCastBar == false then
+    bStopCast = true
+    bCasting  = false
+    self:UpdateCastBar(tFrame, bCasting, bStopCast)
+    return
+  end
+
+  self:UpdateCastBar(tFrame, bCasting, bStopCast)  
 end
 
 
@@ -572,7 +668,7 @@ end
 --
 -- Casts that have timers use this method to indicate their progress
 
-function VikingUnitFrames:UpdateCastBar(tFrame, bCasting)
+function VikingUnitFrames:UpdateCastBar(tFrame, bCasting, bStopCast)
 
   -- If just started casting
   if bCasting and tFrame.bCasting == false then
@@ -591,13 +687,13 @@ function VikingUnitFrames:UpdateCastBar(tFrame, bCasting)
 
     tFrame.CastTimerTick = ApolloTimer.Create(0.01, true, "OnCast" .. tFrame.name .. "FrameTimerTick", self)
 
-  elseif bCasting and tFrame.bCasting == true then
-    return
-  elseif not bCasting and tFrame.bCasting == true then
-    VikingUnitFrames:KillCastTimer(tFrame)
-    tFrame.bCasting = false
+  elseif tFrame.bCasting == true then
+    if not bCasting or bCasting and bStopCast then
+      VikingUnitFrames:KillCastTimer(tFrame)
+      tFrame.bCasting = false
+    else return
+    end
   end
-
 end
 
 
@@ -669,29 +765,40 @@ end
 
 function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   -- Text Style
-  wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.textStyle["Value"])
-  wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.textStyle["Percent"])
+  wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.char.textStyle["Value"])
+  wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.char.textStyle["Percent"])
+  wndContainer:FindChild("TextStyle:Content:BigNumberFormat"):SetCheck(self.db.char.textStyle["BigNumberFormat"])
+
+  --Cast Bar
+  wndContainer:FindChild("CastBar:Content:PlayerCastBar"):SetCheck(self.db.char.castBar["PlayerCastBar"])
+  wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
+  wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
 
   -- Bar colors
-  for strBarName, tBarColorData in pairs(self.db.colors) do
-    local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. strBarName)
+  for sBarName, tBarColorData in pairs(self.db.char.colors) do
+    local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
 
     if wndColorContainer then
-      for strColorState, strColor in pairs(tBarColorData) do
-        local wndColor = wndColorContainer:FindChild(strColorState)
+      for sColorState, sColor in pairs(tBarColorData) do
+        local wndColor = wndColorContainer:FindChild(sColorState)
 
-        if wndColor then wndColor:SetBGColor(strColor) end
+        if wndColor then wndColor:SetBGColor(sColor) end
       end
     end
   end
 end
 
-function VikingUnitFrames:OnTextStyleBtnCheck(wndHandler, wndControl, eMouseButton)
-  self.db.textStyle[wndControl:GetName()] = wndControl:IsChecked()
+
+function VikingUnitFrames:OnSettingsTextStyle(wndHandler, wndControl, eMouseButton)
+  self.db.char.textStyle[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 function VikingUnitFrames:OnSettingsBarColor( wndHandler, wndControl, eMouseButton )
-  VikingLib.Settings.ShowColorPickerForSetting(self.db.colors[wndControl:GetParent():GetName()], wndControl:GetName(), nil, wndControl)
+  VikingLib.Settings.ShowColorPickerForSetting(self.db.char.colors[wndControl:GetParent():GetName()], wndControl:GetName(), nil, wndControl)
+end
+
+function VikingUnitFrames:OnSettingsCastBar(wndHandler, wndControl, eMouseButton)
+  self.db.char.castBar[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
