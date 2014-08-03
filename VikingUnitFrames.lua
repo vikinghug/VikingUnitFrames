@@ -463,9 +463,9 @@ function VikingUnitFrames:NumberToHuman(num)
     local decimalPlaces = 10^1
     local roundedNum    = math.floor(num)
     local sizes = {
-      ['Short']    = 1000,
+      ['Billions'] = 1000000000,
       ['Millions'] = 1000000,
-      ['Billions'] = 1000000000
+      ['Short']    = 1000,
     }
 
     for abbrev, size in pairs(sizes) do
