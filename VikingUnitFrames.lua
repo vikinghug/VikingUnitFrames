@@ -406,8 +406,8 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local wndBar        = tFrame["wnd" .. tMap.bar .. "Bar"]
     local wndProgress   = wndBar:FindChild("ProgressBar")
     local wndText       = wndBar:FindChild("Text")
-    local sProgressMax  = self:HelperFormatBigNumber(nMax)
-    local sProgressCurr = self:HelperFormatBigNumber(nCurrent)
+    local sProgressMax  = self:NumberToHuman(nMax)
+    local sProgressCurr = self:NumberToHuman(nCurrent)
     local sText         = ""
 
 
@@ -460,37 +460,28 @@ end
 --
 --Uses k instead of 1000
 
-function VikingUnitFrames:HelperFormatBigNumber(nArg)
-  --Kept localised strings
-  if nArg ~= nil then
-    if nArg < 1000 then
-      sResult = tostring(nArg)
-    elseif nArg < 1000000 then
-      if math.floor(nArg % 1000 / 100) == 0 then
-        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberWhole"), math.floor(nArg / 1000))
-      else
-        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_ShortNumberFloat"), nArg / 1000)
+function VikingUnitFrames:NumberToHuman(num)
+  if num ~= nil and num > 999 then
+    local decimalPlaces = 10^1
+    local roundedNum    = math.floor(num)
+    local sizes = {
+      ['Billions'] = 1000000000,
+      ['Millions'] = 1000000,
+      ['Short']    = 1000,
+    }
+
+    for abbrev, size in pairs(sizes) do
+      if roundedNum >= size then
+        local number = math.floor(roundedNum * decimalPlaces / size) / decimalPlaces
+        local sType  = number % 1 ~= 0 and "Float" or "Whole"
+        local sFormatString = Apollo.GetString('TargetFrame_' .. abbrev .. 'Number' .. sType)
+
+        return String_GetWeaselString(sFormatString, number)
       end
-    elseif nArg < 1000000000 then
-      if math.floor(nArg % 1000000 / 100000) == 0 then
-        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberWhole"), math.floor(nArg / 1000000))
-      else
-        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_MillionsNumberFloat"), nArg / 1000000)
-      end
-    elseif nArg < 1000000000000 then
-      if math.floor(nArg % 1000000 / 100000) == 0 then
-        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_BillionsNumberWhole"), math.floor(nArg / 1000000))
-      else
-        sResult = String_GetWeaselString(Apollo.GetString("TargetFrame_BillionsNumberFloat"), nArg / 1000000)
-      end
-    else
-      sResult = tostring(nArg)
     end
   end
-  return sResult
+  return num
 end
-
-
 
 --
 -- SetClass
