@@ -220,6 +220,9 @@ function VikingUnitFrames:GetDefaults()
         TargetCastBar = true,
         FocusCastBar  = true,
       },
+      font = {
+         OutlineFont = false
+      },
       colors = {
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
         Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
@@ -438,6 +441,10 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
         sText = ""
       end
       wndText:SetText(sText)
+
+      if self.db.char.font["OutlineFont"] then
+         wndText:SetFont("CRB_InterfaceSmall_O")
+      end
 
       local nLowBar     = 0.3
       local nAverageBar = 0.5
@@ -774,6 +781,9 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
 
+  --Font
+  wndContainer:FindChild("Font:Content:OutlineFont"):SetCheck(self.db.char.font["OutlineFont"])
+
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
     local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
@@ -799,6 +809,10 @@ end
 
 function VikingUnitFrames:OnSettingsCastBar(wndHandler, wndControl, eMouseButton)
   self.db.char.castBar[wndControl:GetName()] = wndControl:IsChecked()
+end
+
+function VikingUnitFrames:OnSettingsFont(wndHandler, wndControl, eMouseButton)
+  self.db.char.font[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
