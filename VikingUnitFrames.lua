@@ -410,6 +410,10 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local sProgressCurr = self:NumberToHuman(nCurrent)
     local sText         = ""
 
+    --Temp fix for shiled not displaying correctly when gear is changed
+    if tMap.bar == "Shield" and nCurrent > nMax then
+      nCurrent = nMax
+    end
 
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
     wndBar:Show(isValidBar, false)
