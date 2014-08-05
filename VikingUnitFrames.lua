@@ -214,14 +214,12 @@ function VikingUnitFrames:GetDefaults()
         Value = false,
         Percent = true,
         BigNumberFormat = false,
+        OutlineFont = false,
       },
       castBar = {
         PlayerCastBar = true,
         TargetCastBar = true,
         FocusCastBar  = true,
-      },
-      font = {
-         OutlineFont = false
       },
       colors = {
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
@@ -442,8 +440,10 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
       end
       wndText:SetText(sText)
 
-      if self.db.char.font["OutlineFont"] then
-         wndText:SetFont("CRB_InterfaceSmall_O")
+      if self.db.char.textStyle["OutlineFont"] then
+        wndText:SetFont("CRB_InterfaceSmall_O")
+      else
+        wndText:SetFont("Default")
       end
 
       local nLowBar     = 0.3
@@ -775,15 +775,13 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.char.textStyle["Value"])
   wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.char.textStyle["Percent"])
   wndContainer:FindChild("TextStyle:Content:BigNumberFormat"):SetCheck(self.db.char.textStyle["BigNumberFormat"])
+  wndContainer:FindChild("TextStyle:Content:OutlineFont"):SetCheck(self.db.char.textStyle["OutlineFont"])
 
   --Cast Bar
   wndContainer:FindChild("CastBar:Content:PlayerCastBar"):SetCheck(self.db.char.castBar["PlayerCastBar"])
   wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
-
-  --Font
-  wndContainer:FindChild("Font:Content:OutlineFont"):SetCheck(self.db.char.font["OutlineFont"])
-
+  
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
     local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
@@ -809,10 +807,6 @@ end
 
 function VikingUnitFrames:OnSettingsCastBar(wndHandler, wndControl, eMouseButton)
   self.db.char.castBar[wndControl:GetName()] = wndControl:IsChecked()
-end
-
-function VikingUnitFrames:OnSettingsFont(wndHandler, wndControl, eMouseButton)
-  self.db.char.font[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
