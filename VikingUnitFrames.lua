@@ -216,7 +216,9 @@ function VikingUnitFrames:GetDefaults()
         BigNumberFormat = false,
       },
       castBar = {
-        CastBarShow = true,
+        PlayerCastBar = true,
+        TargetCastBar = true,
+        FocusCastBar  = true,
       },
       colors = {
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
@@ -643,11 +645,21 @@ end
 function VikingUnitFrames:ShowCastBar(tFrame)
 
   -- If no unit then don't do anything
-  if tFrame.unit == nil or self.db.char.castBar["CastBarShow"] == false then return end
+  if tFrame.unit == nil then return end
 
-  local unit = tFrame.unit
-  local bCasting = unit:ShouldShowCastBar()
-  self:UpdateCastBar(tFrame, bCasting)
+  local bStopCast    = false
+  local bCasting     = tFrame.unit:ShouldShowCastBar()
+  local bShowCastBar = self.db.char.castBar[tFrame.name .. "CastBar"]
+
+
+  if bShowCastBar == false then
+    bStopCast = true
+    bCasting  = false
+    self:UpdateCastBar(tFrame, bCasting, bStopCast)
+    return
+  end
+
+  self:UpdateCastBar(tFrame, bCasting, bStopCast)  
 end
 
 
@@ -656,7 +668,7 @@ end
 --
 -- Casts that have timers use this method to indicate their progress
 
-function VikingUnitFrames:UpdateCastBar(tFrame, bCasting)
+function VikingUnitFrames:UpdateCastBar(tFrame, bCasting, bStopCast)
 
   -- If just started casting
   if bCasting and tFrame.bCasting == false then
@@ -675,13 +687,13 @@ function VikingUnitFrames:UpdateCastBar(tFrame, bCasting)
 
     tFrame.CastTimerTick = ApolloTimer.Create(0.01, true, "OnCast" .. tFrame.name .. "FrameTimerTick", self)
 
-  elseif bCasting and tFrame.bCasting == true then
-    return
-  elseif not bCasting and tFrame.bCasting == true then
-    VikingUnitFrames:KillCastTimer(tFrame)
-    tFrame.bCasting = false
+  elseif tFrame.bCasting == true then
+    if not bCasting or bCasting and bStopCast then
+      VikingUnitFrames:KillCastTimer(tFrame)
+      tFrame.bCasting = false
+    else return
+    end
   end
-
 end
 
 
@@ -758,7 +770,9 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("TextStyle:Content:BigNumberFormat"):SetCheck(self.db.char.textStyle["BigNumberFormat"])
 
   --Cast Bar
-  wndContainer:FindChild("CastBar:Content:CastBarShow"):SetCheck(self.db.char.castBar["CastBarShow"])
+  wndContainer:FindChild("CastBar:Content:PlayerCastBar"):SetCheck(self.db.char.castBar["PlayerCastBar"])
+  wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
+  wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
 
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
