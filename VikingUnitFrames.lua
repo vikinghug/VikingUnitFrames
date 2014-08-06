@@ -411,7 +411,7 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local sText         = ""
 
     --Temp fix for shiled not displaying correctly when gear is changed
-    if tMap.bar == "Shield" and nCurrent > nMax then
+    if nCurrent ~= nil and tMap.bar == "Shield" and nCurrent > nMax then
       nCurrent = nMax
     end
 
