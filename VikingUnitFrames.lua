@@ -700,9 +700,8 @@ end
 -- Checks if focussed unit is dead and then remove focus
 
 function VikingUnitFrames:OnUnitDestroyed(unit)
-  local PlayerUnit = GameLib:GetPlayerUnit()
   local DestroyedUnit = unit
-  local FocusUnit = PlayerUnit:GetAlternateTarget()
+  local FocusUnit = GameLib:GetPlayerUnit():GetAlternateTarget()
 
   if DestroyedUnit == FocusUnit then
     FocusUnit:SetAlternateTarget(nil)
