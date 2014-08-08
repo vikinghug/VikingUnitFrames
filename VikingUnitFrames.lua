@@ -113,6 +113,7 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
+  Apollo.RegisterEventHandler("UnitDestroyed"              , "OnUnitDestroyed"              , self)
 
   Apollo.RegisterSlashCommand("focus", "OnFocusSlashCommand", self)
   Apollo.RegisterSlashCommand("targetfocus", "OnTargetfocusSlashCommand", self)
@@ -265,7 +266,7 @@ function VikingUnitFrames:OnCharacterLoaded()
 
   -- Focus Frame
   self.tFocusFrame = self:CreateUnitFrame("Focus")
-
+  self:UpdateUnitFrame(self.tFocusFrame, playerUnit:GetAlternateTarget())
 
   self.eClassID =  playerUnit:GetClassId()
 
@@ -286,6 +287,7 @@ function VikingUnitFrames:OnLoading()
   self:SetUnit(self.tPlayerFrame, playerUnit)
   self:SetUnitLevel(self.tPlayerFrame)
   self.tPlayerFrame.unit = playerUnit
+
   LoadingTimer:Stop()
 end
 
@@ -355,9 +357,7 @@ function VikingUnitFrames:OnFrame()
     self:SetUnitLevel(self.tFocusFrame)
     self:SetInterruptArmor(self.tFocusFrame)
 
-
   end
-
 end
 
 
@@ -493,8 +493,6 @@ function VikingUnitFrames:NumberToHuman(num)
   end
   return num
 end
-
-
 
 --
 -- SetClass
@@ -707,6 +705,19 @@ function VikingUnitFrames:UpdateCastBar(tFrame, bCasting, bStopCast)
   end
 end
 
+--
+-- Unit Destroyed
+--
+-- Checks if focussed unit is dead and then remove focus
+
+function VikingUnitFrames:OnUnitDestroyed(unit)
+  local DestroyedUnit = unit
+  local FocusUnit = GameLib:GetPlayerUnit():GetAlternateTarget()
+
+  if DestroyedUnit == FocusUnit then
+    FocusUnit:SetAlternateTarget(nil)
+  end
+end
 
 -----------------------------------------------------------------------------------------------
 -- Cast Timer
