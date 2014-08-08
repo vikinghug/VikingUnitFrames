@@ -214,6 +214,7 @@ function VikingUnitFrames:GetDefaults()
         Value = false,
         Percent = true,
         BigNumberFormat = false,
+        OutlineFont = false,
       },
       castBar = {
         PlayerCastBar = true,
@@ -442,6 +443,12 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
         sText = ""
       end
       wndText:SetText(sText)
+
+      if self.db.char.textStyle["OutlineFont"] then
+        wndText:SetFont("CRB_InterfaceSmall_O")
+      else
+        wndText:SetFont("Default")
+      end
 
       local nLowBar     = 0.3
       local nAverageBar = 0.5
@@ -772,12 +779,13 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.char.textStyle["Value"])
   wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.char.textStyle["Percent"])
   wndContainer:FindChild("TextStyle:Content:BigNumberFormat"):SetCheck(self.db.char.textStyle["BigNumberFormat"])
+  wndContainer:FindChild("TextStyle:Content:OutlineFont"):SetCheck(self.db.char.textStyle["OutlineFont"])
 
   --Cast Bar
   wndContainer:FindChild("CastBar:Content:PlayerCastBar"):SetCheck(self.db.char.castBar["PlayerCastBar"])
   wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
-
+  
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
     local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
