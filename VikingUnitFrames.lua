@@ -113,6 +113,7 @@ function VikingUnitFrames:OnDocumentReady()
   Apollo.RegisterEventHandler("UnitLevelChanged"           , "OnUnitLevelChange"            , self)
   Apollo.RegisterEventHandler("VarChange_FrameCount"       , "OnFrame"                      , self)
   Apollo.RegisterEventHandler("ChangeWorld"                , "OnWorldChanged"               , self)
+  Apollo.RegisterEventHandler("UnitDestroyed"              , "OnUnitDestroyed"              , self)
 
   Apollo.RegisterSlashCommand("focus", "OnFocusSlashCommand", self)
   Apollo.RegisterSlashCommand("targetfocus", "OnTargetfocusSlashCommand", self)
@@ -126,6 +127,7 @@ function VikingUnitFrames:OnWindowManagementReady()
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = "Viking Player Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = "Viking Target Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = "Viking Focus Target" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tToTFrame.wndUnitFrame,  strName = "Viking Target of Target Frame" })
 end
 
 
@@ -208,12 +210,17 @@ function VikingUnitFrames:GetDefaults()
         focusFrame = {
           fPoints  = {0, 1, 0, 1},
           nOffsets = {40, -500, 250, -440}
+        },
+        totFrame   = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {350, -300, 600, -220}
         }
       },
       textStyle = {
         Value = false,
         Percent = true,
         BigNumberFormat = false,
+        OutlineFont = false,
       },
       castBar = {
         PlayerCastBar = true,
@@ -224,6 +231,9 @@ function VikingUnitFrames:GetDefaults()
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
         Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
         Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
+      },
+      ToT = {
+         ToTFrame = false
       }
     }
   }
@@ -264,6 +274,10 @@ function VikingUnitFrames:OnCharacterLoaded()
 
   -- Focus Frame
   self.tFocusFrame = self:CreateUnitFrame("Focus")
+  self:UpdateUnitFrame(self.tFocusFrame, playerUnit:GetAlternateTarget())
+
+  -- ToT Frame
+  self.tToTFrame = self:CreateUnitFrame("ToT")
 
 
   self.eClassID =  playerUnit:GetClassId()
@@ -285,6 +299,7 @@ function VikingUnitFrames:OnLoading()
   self:SetUnit(self.tPlayerFrame, playerUnit)
   self:SetUnitLevel(self.tPlayerFrame)
   self.tPlayerFrame.unit = playerUnit
+
   LoadingTimer:Stop()
 end
 
@@ -354,9 +369,18 @@ function VikingUnitFrames:OnFrame()
     self:SetUnitLevel(self.tFocusFrame)
     self:SetInterruptArmor(self.tFocusFrame)
 
+    -- ToTFrame
+    if self.db.char.ToT["ToTFrame"] == true then
+      local targetOfTarget = GameLib:GetPlayerUnit():GetTargetOfTarget()
+      self:UpdateUnitFrame(self.tToTFrame, targetOfTarget)
+    else
+      self:UpdateUnitFrame(self.tToTFrame, nil)
+    end
+    self:UpdateBars(self.tToTFrame)
+    self:SetUnitLevel(self.tToTFrame)
+    self:SetInterruptArmor(self.tToTFrame)
 
   end
-
 end
 
 
@@ -410,6 +434,11 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
     local sProgressCurr = self:NumberToHuman(nCurrent)
     local sText         = ""
 
+    --Temp fix for shiled not displaying correctly when gear is changed
+    if nCurrent ~= nil and tMap.bar == "Shield" and nCurrent > nMax then
+      nCurrent = nMax
+    end
+
 
     local isValidBar = (nMax ~= nil and nMax ~= 0) and true or false
     wndBar:Show(isValidBar, false)
@@ -438,6 +467,12 @@ function VikingUnitFrames:SetBar(tFrame, tMap)
         sText = ""
       end
       wndText:SetText(sText)
+
+      if self.db.char.textStyle["OutlineFont"] then
+        wndText:SetFont("CRB_InterfaceSmall_O")
+      else
+        wndText:SetFont("Default")
+      end
 
       local nLowBar     = 0.3
       local nAverageBar = 0.5
@@ -482,8 +517,6 @@ function VikingUnitFrames:NumberToHuman(num)
   end
   return num
 end
-
-
 
 --
 -- SetClass
@@ -659,7 +692,7 @@ function VikingUnitFrames:ShowCastBar(tFrame)
     return
   end
 
-  self:UpdateCastBar(tFrame, bCasting, bStopCast)  
+  self:UpdateCastBar(tFrame, bCasting, bStopCast)
 end
 
 
@@ -696,6 +729,21 @@ function VikingUnitFrames:UpdateCastBar(tFrame, bCasting, bStopCast)
   end
 end
 
+--
+-- Unit Destroyed
+--
+-- Checks if focussed unit is dead and then remove focus
+
+function VikingUnitFrames:OnUnitDestroyed(unit)
+  local DestroyedUnit = unit
+  local PlayerUnit = GameLib:GetPlayerUnit()
+  if PlayerUnit ~= nil then
+    local FocusUnit = PlayerUnit:GetAlternateTarget()
+    if DestroyedUnit == FocusUnit then
+      FocusUnit:SetAlternateTarget(nil)
+    end
+  end
+end
 
 -----------------------------------------------------------------------------------------------
 -- Cast Timer
@@ -712,6 +760,10 @@ end
 
 function VikingUnitFrames:OnCastFocusFrameTimerTick()
   self:UpdateCastTimer(self.tFocusFrame)
+end
+
+function VikingUnitFrames:OnCastToTFrameTimerTick()
+  self:UpdateCastTimer(self.tToTFrame)
 end
 
 function VikingUnitFrames:UpdateCastTimer(tFrame)
@@ -768,11 +820,15 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("TextStyle:Content:Value"):SetCheck(self.db.char.textStyle["Value"])
   wndContainer:FindChild("TextStyle:Content:Percent"):SetCheck(self.db.char.textStyle["Percent"])
   wndContainer:FindChild("TextStyle:Content:BigNumberFormat"):SetCheck(self.db.char.textStyle["BigNumberFormat"])
+  wndContainer:FindChild("TextStyle:Content:OutlineFont"):SetCheck(self.db.char.textStyle["OutlineFont"])
 
   --Cast Bar
   wndContainer:FindChild("CastBar:Content:PlayerCastBar"):SetCheck(self.db.char.castBar["PlayerCastBar"])
   wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
+  
+  -- Target of Target Frame
+  wndContainer:FindChild("ToT:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
 
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
@@ -799,6 +855,10 @@ end
 
 function VikingUnitFrames:OnSettingsCastBar(wndHandler, wndControl, eMouseButton)
   self.db.char.castBar[wndControl:GetName()] = wndControl:IsChecked()
+end
+
+function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
+  self.db.char.ToT[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
