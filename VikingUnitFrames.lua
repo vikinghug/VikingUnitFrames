@@ -736,10 +736,12 @@ end
 
 function VikingUnitFrames:OnUnitDestroyed(unit)
   local DestroyedUnit = unit
-  local FocusUnit = GameLib:GetPlayerUnit():GetAlternateTarget()
-
-  if DestroyedUnit == FocusUnit then
-    FocusUnit:SetAlternateTarget(nil)
+  local PlayerUnit = GameLib:GetPlayerUnit()
+  if PlayerUnit ~= nil then
+    local FocusUnit = PlayerUnit:GetAlternateTarget()
+    if DestroyedUnit == FocusUnit then
+      FocusUnit:SetAlternateTarget(nil)
+    end
   end
 end
 
