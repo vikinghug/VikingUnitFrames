@@ -200,12 +200,12 @@ function VikingUnitFrames:GetDefaults()
       style = 0,
       position = {
         playerFrame = {
-          fPoints  = {0.5, 1, 0.5, 1},
-          nOffsets = {-350, -200, -100, -120}
+          fPoints   = {0.5, 1, 0.5, 1},
+          nOffsets  = {-350, -200, -100, -120}
         },
         targetFrame = {
-          fPoints  = {0.5, 1, 0.5, 1},
-          nOffsets = {100, -200, 350, -120}
+          fPoints   = {0.5, 1, 0.5, 1},
+          nOffsets  = {100, -200, 350, -120}
         },
         focusFrame = {
           fPoints  = {0, 1, 0, 1},
@@ -217,15 +217,19 @@ function VikingUnitFrames:GetDefaults()
         }
       },
       textStyle = {
-        Value = false,
-        Percent = true,
-        BigNumberFormat = false,
-        OutlineFont = false,
+        Value           = false,
+        Percent         = true,
+        BigNumberFormat = true,
+        OutlineFont     = false,
       },
       castBar = {
         PlayerCastBar = true,
         TargetCastBar = true,
         FocusCastBar  = true,
+      },
+      buffs = {
+        BuffGoodShow = true,
+        BuffBadShow  = true,
       },
       colors = {
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
@@ -233,7 +237,7 @@ function VikingUnitFrames:GetDefaults()
         Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
       },
       ToT = {
-         ToTFrame = false
+         ToTFrame = true
       }
     }
   }
@@ -411,6 +415,7 @@ function VikingUnitFrames:UpdateBars(tFrame)
   }
 
   self:ShowCastBar(tFrame)
+  self:ShowBuffBar(tFrame)
   self:SetBar(tFrame, tHealthMap)
   self:SetBar(tFrame, tShieldMap)
   self:SetBar(tFrame, tAbsorbMap)
@@ -586,8 +591,10 @@ end
 
 function VikingUnitFrames:SetUnit(tFrame, unit)
   tFrame.unit = unit
+
   tFrame.wndUnitFrame:FindChild("Good"):SetUnit(unit)
   tFrame.wndUnitFrame:FindChild("Bad"):SetUnit(unit)
+
   self:SetDisposition(tFrame, unit)
 
   -- Set the Data to the unit, for mouse events
@@ -695,6 +702,22 @@ function VikingUnitFrames:ShowCastBar(tFrame)
   self:UpdateCastBar(tFrame, bCasting, bStopCast)
 end
 
+--ShowBuffBar
+--
+-- Check to see if Buff's should be displayed
+
+function VikingUnitFrames:ShowBuffBar(tFrame)
+
+  -- If no unit then don't do anything
+  if tFrame.unit == nil then return end
+
+  local BuffGood = self.db.char.buffs["BuffGoodShow"]
+  local BuffBad  = self.db.char.buffs["BuffBadShow"]
+
+  tFrame.wndUnitFrame:FindChild("Good"):Show(BuffGood)
+  tFrame.wndUnitFrame:FindChild("Bad"):Show(BuffBad)
+
+end
 
 --
 -- UpdateCastBar
@@ -832,6 +855,10 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   -- Target of Target Frame
   wndContainer:FindChild("ToT:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
 
+  -- Buffs
+  wndContainer:FindChild("Buffs:Content:BuffGoodShow"):SetCheck(self.db.char.buffs["BuffGoodShow"])
+  wndContainer:FindChild("Buffs:Content:BuffBadShow"):SetCheck(self.db.char.buffs["BuffBadShow"])
+
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
     local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
@@ -861,6 +888,10 @@ end
 
 function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
   self.db.char.ToT[wndControl:GetName()] = wndControl:IsChecked()
+end
+
+function VikingUnitFrames:OnSettingsBuffs(wndHandler, wndControl, eMouseButton)
+  self.db.char.buffs[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
