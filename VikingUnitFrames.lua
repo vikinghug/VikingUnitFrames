@@ -231,6 +231,10 @@ function VikingUnitFrames:GetDefaults()
         BuffGoodShow = true,
         BuffBadShow  = true,
       },
+      buffs = {
+        BuffGoodShow = true,
+        BuffBadShow  = true,
+      },
       colors = {
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
         Shield = { high = "ff" .. tColors.blue,   average = "ff" .. tColors.blue, low = "ff" ..   tColors.blue },
@@ -859,6 +863,10 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("Buffs:Content:BuffGoodShow"):SetCheck(self.db.char.buffs["BuffGoodShow"])
   wndContainer:FindChild("Buffs:Content:BuffBadShow"):SetCheck(self.db.char.buffs["BuffBadShow"])
 
+  -- Buffs
+  wndContainer:FindChild("Buffs:Content:BuffGoodShow"):SetCheck(self.db.char.buffs["BuffGoodShow"])
+  wndContainer:FindChild("Buffs:Content:BuffBadShow"):SetCheck(self.db.char.buffs["BuffBadShow"])
+
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
     local wndColorContainer = wndContainer:FindChild("Colors:Content:" .. sBarName)
@@ -885,6 +893,7 @@ end
 function VikingUnitFrames:OnSettingsCastBar(wndHandler, wndControl, eMouseButton)
   self.db.char.castBar[wndControl:GetName()] = wndControl:IsChecked()
 end
+
 
 function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
   self.db.char.ToT[wndControl:GetName()] = wndControl:IsChecked()
