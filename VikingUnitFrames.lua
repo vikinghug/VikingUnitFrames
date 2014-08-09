@@ -219,7 +219,7 @@ function VikingUnitFrames:GetDefaults()
       textStyle = {
         Value           = false,
         Percent         = true,
-        BigNumberFormat = false,
+        BigNumberFormat = true,
         OutlineFont     = false,
       },
       castBar = {
@@ -237,7 +237,7 @@ function VikingUnitFrames:GetDefaults()
         Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
       },
       ToT = {
-         ToTFrame = false
+         ToTFrame = true
       }
     }
   }
@@ -888,6 +888,7 @@ end
 
 function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
   self.db.char.ToT[wndControl:GetName()] = wndControl:IsChecked()
+end
 
 function VikingUnitFrames:OnSettingsBuffs(wndHandler, wndControl, eMouseButton)
   self.db.char.buffs[wndControl:GetName()] = wndControl:IsChecked()
