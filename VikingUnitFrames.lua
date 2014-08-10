@@ -505,12 +505,14 @@ function VikingUnitFrames:NumberToHuman(num)
     local decimalPlaces = 10^1
     local roundedNum    = math.floor(num)
     local sizes = {
-      ['Billions'] = 1000000000,
-      ['Millions'] = 1000000,
-      ['Short']    = 1000,
+      { 'Billions', 1000000000 },
+      { 'Millions', 1000000 },
+      { 'Short', 1000 },
     }
 
-    for abbrev, size in pairs(sizes) do
+    for i, value in ipairs(sizes) do
+      local abbrev = value[1]
+      local size = value[2]
       if roundedNum >= size then
         local number = math.floor(roundedNum * decimalPlaces / size) / decimalPlaces
         local sType  = number % 1 ~= 0 and "Float" or "Whole"
@@ -851,7 +853,7 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("CastBar:Content:PlayerCastBar"):SetCheck(self.db.char.castBar["PlayerCastBar"])
   wndContainer:FindChild("CastBar:Content:TargetCastBar"):SetCheck(self.db.char.castBar["TargetCastBar"])
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
-  
+
   -- Target of Target Frame
   wndContainer:FindChild("ToT:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
 
