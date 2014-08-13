@@ -647,6 +647,10 @@ function VikingUnitFrames:SetInterruptArmor(tFrame)
 
   if not bShowInterrupt then return end
 
+  if nInterruptArmorMax == -1 then
+    nInterruptArmorCurrent = "∞"
+  end
+
   tFrame.wndInterrupt:FindChild("Text"):SetText(nInterruptArmorCurrent)
 end
 
