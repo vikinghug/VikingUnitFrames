@@ -228,8 +228,22 @@ function VikingUnitFrames:GetDefaults()
         FocusCastBar  = true,
       },
       buffs = {
-        BuffGoodShow = true,
-        BuffBadShow  = true,
+        PlayerBuffs    = {
+          BuffGoodShow = true,
+          BuffBadShow  = true
+        },
+        TargetBuffs    = {
+          BuffGoodShow = true,
+          BuffBadShow  = true
+        },
+        FocusBuffs     = {
+          BuffGoodShow = true,
+          BuffBadShow  = true
+        },
+        ToTBuffs       = {
+          BuffGoodShow = true,
+          BuffBadShow  = true
+        }
       },
       colors = {
         Health = { high = "ff" .. tColors.green,  average = "ff" .. tColors.yellow, low = "ff" .. tColors.red },
@@ -285,7 +299,6 @@ function VikingUnitFrames:OnCharacterLoaded()
 
 
   self.eClassID =  playerUnit:GetClassId()
-
 end
 
 
@@ -717,12 +730,15 @@ function VikingUnitFrames:ShowBuffBar(tFrame)
   -- If no unit then don't do anything
   if tFrame.unit == nil then return end
 
-  local BuffGood = self.db.char.buffs["BuffGoodShow"]
-  local BuffBad  = self.db.char.buffs["BuffBadShow"]
+  local sFrame = tFrame.name .. "Buffs"
 
-  tFrame.wndUnitFrame:FindChild("Good"):Show(BuffGood)
-  tFrame.wndUnitFrame:FindChild("Bad"):Show(BuffBad)
+  if sFrame == nil or self.db.char.buffs[sFrame] == nil then return end
 
+  local BuffGood = self.db.char.buffs[sFrame]["BuffGoodShow"]
+  local BuffBad  = self.db.char.buffs[sFrame]["BuffBadShow"]
+
+  tFrame.wndUnitFrame:FindChild("Buffs:Good"):Show(BuffGood)
+  tFrame.wndUnitFrame:FindChild("Buffs:Bad"):Show(BuffBad)
 end
 
 --
@@ -861,9 +877,18 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   -- Target of Target Frame
   wndContainer:FindChild("ToT:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
 
-  -- Buffs
-  wndContainer:FindChild("Buffs:Content:BuffGoodShow"):SetCheck(self.db.char.buffs["BuffGoodShow"])
-  wndContainer:FindChild("Buffs:Content:BuffBadShow"):SetCheck(self.db.char.buffs["BuffBadShow"])
+  -- Buffs Player
+  wndContainer:FindChild("Buffs:Content:Player:BuffGoodShow"):SetCheck(self.db.char.buffs.PlayerBuffs["BuffGoodShow"])
+  wndContainer:FindChild("Buffs:Content:Player:BuffBadShow"):SetCheck(self.db.char.buffs.PlayerBuffs["BuffBadShow"])
+  -- Buff Target
+  wndContainer:FindChild("Buffs:Content:Target:BuffGoodShow"):SetCheck(self.db.char.buffs.TargetBuffs["BuffGoodShow"])
+  wndContainer:FindChild("Buffs:Content:Target:BuffBadShow"):SetCheck(self.db.char.buffs.TargetBuffs["BuffBadShow"])
+  -- Buff Focus
+  wndContainer:FindChild("Buffs:Content:Focus:BuffGoodShow"):SetCheck(self.db.char.buffs.FocusBuffs["BuffGoodShow"])
+  wndContainer:FindChild("Buffs:Content:Focus:BuffBadShow"):SetCheck(self.db.char.buffs.FocusBuffs["BuffBadShow"])
+  -- Buff ToT
+  wndContainer:FindChild("Buffs:Content:ToT:BuffGoodShow"):SetCheck(self.db.char.buffs.ToTBuffs["BuffGoodShow"])
+  wndContainer:FindChild("Buffs:Content:ToT:BuffBadShow"):SetCheck(self.db.char.buffs.ToTBuffs["BuffBadShow"])
 
   -- Bar colors
   for sBarName, tBarColorData in pairs(self.db.char.colors) do
@@ -877,8 +902,23 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
       end
     end
   end
-end
 
+-- Tab Settings for Buffs
+  local wndPlayerTab = wndContainer:FindChild("VikingSettings:Buffs:Content:Player")
+  local wndTargetTab = wndContainer:FindChild("VikingSettings:Buffs:Content:Target")
+  local wndFocusTab  = wndContainer:FindChild("VikingSettings:Buffs:Content:Focus")
+  local wndToTTab    = wndContainer:FindChild("VikingSettings:Buffs:Content:ToT")
+
+  -- Attching the tabs together
+  wndPlayerTab:AttachTab(wndTargetTab, false)
+  wndPlayerTab:AttachTab(wndFocusTab , false)
+  wndPlayerTab:AttachTab(wndToTTab, false)
+  -- Locking the tabs so they doesn't move
+  wndPlayerTab:Lock(true)
+  wndTargetTab:Lock(true)
+  wndFocusTab:Lock(true)
+  wndToTTab:Lock(true)
+end
 
 function VikingUnitFrames:OnSettingsTextStyle(wndHandler, wndControl, eMouseButton)
   self.db.char.textStyle[wndControl:GetName()] = wndControl:IsChecked()
@@ -897,7 +937,17 @@ function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
 end
 
 function VikingUnitFrames:OnSettingsBuffs(wndHandler, wndControl, eMouseButton)
-  self.db.char.buffs[wndControl:GetName()] = wndControl:IsChecked()
+
+  local sFrame = wndControl:GetParent():GetName() .. "Buffs"
+
+  if sFrame == nil or self.db.char.buffs[sFrame] == nil then return end
+  self.db.char.buffs[sFrame][wndControl:GetName()] = wndControl:IsChecked()
+
+  
+end
+
+function VikingUnitFrames:OnSettingsTargetBuffs(wndHandler, wndControl, eMouseButton)
+  self.db.char.buffs.PlayerBuffs[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 local VikingUnitFramesInst = VikingUnitFrames:new()
