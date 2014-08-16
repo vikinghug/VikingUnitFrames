@@ -226,6 +226,7 @@ function VikingUnitFrames:GetDefaults()
         PlayerCastBar = true,
         TargetCastBar = true,
         FocusCastBar  = true,
+        ToTCastBar    = true,
       },
       buffs = {
         BuffGoodShow = true,
