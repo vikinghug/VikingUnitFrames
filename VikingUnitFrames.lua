@@ -11,29 +11,29 @@ local VikingUnitFrames = {
   _URL     = 'https://github.com/vikinghug/VikingUnitFrames',
   _DESCRIPTION = '',
   _LICENSE = [[
-    MIT LICENSE
+      MIT LICENSE
 
-    Copyright (c) 2014 Kevin Altman
+      Copyright (c) 2014 Kevin Altman
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the
-    "Software"), to deal in the Software without restriction, including
-    without limitation the rights to use, copy, modify, merge, publish,
-    distribute, sublicense, and/or sell copies of the Software, and to
-    permit persons to whom the Software is furnished to do so, subject to
-    the following conditions:
+      Permission is hereby granted, free of charge, to any person obtaining a
+      copy of this software and associated documentation files (the
+                                                                "Software"), to deal in the Software without restriction, including
+      without limitation the rights to use, copy, modify, merge, publish,
+      distribute, sublicense, and/or sell copies of the Software, and to
+      permit persons to whom the Software is furnished to do so, subject to
+        the following conditions:
 
-    The above copyright notice and this permission notice shall be included
-    in all copies or substantial portions of the Software.
+          The above copyright notice and this permission notice shall be included
+        in all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-  ]]
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+          IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+          ]]
 }
 
 -- GameLib.CodeEnumClass.Warrior      = 1
@@ -128,6 +128,7 @@ function VikingUnitFrames:OnWindowManagementReady()
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = "Viking Target Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = "Viking Focus Target" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tToTFrame.wndUnitFrame,  strName = "Viking Target of Target Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerMountFrame.wndPetFrame,  strName = "Viking Player Mount Frame" })
 end
 
 
@@ -190,6 +191,35 @@ function VikingUnitFrames:CreateUnitFrame(name)
 
 end
 
+--
+-- CreatePetFrame
+--
+--   Builds a PetFrame instance
+function VikingUnitFrames:CreatePetFrame(name)
+
+  local sFrame = "t" .. name .. "Frame"
+
+  local wndPetFrame = Apollo.LoadForm(self.xmlDoc, "PetFrame", "FixedHudStratumLow" , self)
+
+  local tFrame = {
+    name          = name,
+    wndPetFrame  = wndPetFrame,
+    wndHealthBar  = wndPetFrame:FindChild("Bars:Health"),
+    wndShieldBar  = wndPetFrame:FindChild("Bars:Shield"),
+    wndAbsorbBar  = wndPetFrame:FindChild("Bars:Absorb"),
+    wndTargetMark = wndPetFrame:FindChild("TargetExtra:Mark"),
+    wndInterrupt  = wndPetFrame:FindChild("TargetExtra:InterruptArmor"),
+  }
+
+  tFrame.wndPetFrame:SetSizingMinimum(140, 60)
+
+  tFrame.locDefaultPosition = WindowLocation.new(self.db.char.position[name:lower() .. "Frame"])
+  tFrame.wndPetFrame:MoveToLocation(tFrame.locDefaultPosition)
+  self:InitColors(tFrame)
+
+  return tFrame
+
+end
 
 function VikingUnitFrames:GetDefaults()
 
@@ -201,7 +231,7 @@ function VikingUnitFrames:GetDefaults()
       position = {
         playerFrame = {
           fPoints   = {0.5, 1, 0.5, 1},
-          nOffsets  = {-350, -200, -100, -120}
+          nOffsets  = {-350, -240, -100, -160}
         },
         targetFrame = {
           fPoints   = {0.5, 1, 0.5, 1},
@@ -214,7 +244,11 @@ function VikingUnitFrames:GetDefaults()
         totFrame   = {
           fPoints  = {0.5, 1, 0.5, 1},
           nOffsets = {350, -300, 600, -220}
-        }
+        },
+        playermountFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {-350, -155, -290, -125}
+        },
       },
       textStyle = {
         Value           = false,
@@ -238,7 +272,7 @@ function VikingUnitFrames:GetDefaults()
         Absorb = { high = "ff" .. tColors.yellow, average = "ff" .. tColors.yellow, low = "ff" .. tColors.yellow },
       },
       ToT = {
-         ToTFrame = true
+        ToTFrame = true
       }
     }
   }
@@ -284,6 +318,9 @@ function VikingUnitFrames:OnCharacterLoaded()
   -- ToT Frame
   self.tToTFrame = self:CreateUnitFrame("ToT")
 
+  -- Mount Frame
+  self.tPlayerMountFrame = self:CreatePetFrame("PlayerMount")
+  self.tPlayerMountFrame["wndHealthBar"]:SetAnchorPoints(0,0,1,1) -- mounts have no shield
 
   self.eClassID =  playerUnit:GetClassId()
 
@@ -338,6 +375,17 @@ function VikingUnitFrames:UpdateUnitFrame(tFrame, unit)
 
 end
 
+function VikingUnitFrames:UpdatePetFrame(tFrame, unit)
+
+  tFrame.wndPetFrame:Show(unit ~= nil)
+
+  if unit ~= nil then
+    self:SetUnit(tFrame, unit)
+    self:SetUnitName(tFrame, "M")
+  end
+
+end
+
 function VikingUnitFrames:OnFocusSlashCommand()
   local unitTarget = GameLib.GetTargetUnit()
 
@@ -347,7 +395,7 @@ end
 function VikingUnitFrames:OnTargetfocusSlashCommand()
   local unitTarget = GameLib.GetPlayerUnit():GetAlternateTarget()
 
-   GameLib.SetTargetUnit(unitTarget)
+  GameLib.SetTargetUnit(unitTarget)
 end
 
 --
@@ -384,6 +432,10 @@ function VikingUnitFrames:OnFrame()
     self:UpdateBars(self.tToTFrame)
     self:SetUnitLevel(self.tToTFrame)
     self:SetInterruptArmor(self.tToTFrame)
+
+    -- PlayerMountFrame
+    self:UpdatePetFrame(self.tPlayerMountFrame,GameLib:GetPlayerMountUnit(), true)
+    self:UpdateBars(self.tPlayerMountFrame)
 
   end
 end
@@ -533,22 +585,22 @@ end
 
 function VikingUnitFrames:SetClass(tFrame)
 
-    local sPlayerIconSprite, sRankIconSprite, locNameText
-    local sUnitType = tFrame.unit:GetType()
+  local sPlayerIconSprite, sRankIconSprite, locNameText
+  local sUnitType = tFrame.unit:GetType()
 
-    if sUnitType == "Player" then
-      locNameText         = { 24, 0, -30, 26 }
-      sRankIconSprite   = ""
-      sPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
-    else
-      locNameText         = { 34, 0, -30, 26 }
-      sPlayerIconSprite = ""
-      sRankIconSprite   = tRankToSpriteMap[tFrame.unit:GetRank()]
-    end
+  if sUnitType == "Player" then
+    locNameText         = { 24, 0, -30, 26 }
+    sRankIconSprite   = ""
+    sPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
+  else
+    locNameText         = { 34, 0, -30, 26 }
+    sPlayerIconSprite = ""
+    sRankIconSprite   = tRankToSpriteMap[tFrame.unit:GetRank()]
+  end
 
-    tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetAnchorOffsets(locNameText[1], locNameText[2], locNameText[3], locNameText[4])
-    tFrame.wndUnitFrame:FindChild("TargetInfo:ClassIcon"):SetSprite(sPlayerIconSprite)
-    tFrame.wndUnitFrame:FindChild("TargetInfo:RankIcon"):SetSprite(sRankIconSprite)
+  tFrame.wndUnitFrame:FindChild("TargetInfo:UnitName"):SetAnchorOffsets(locNameText[1], locNameText[2], locNameText[3], locNameText[4])
+  tFrame.wndUnitFrame:FindChild("TargetInfo:ClassIcon"):SetSprite(sPlayerIconSprite)
+  tFrame.wndUnitFrame:FindChild("TargetInfo:RankIcon"):SetSprite(sRankIconSprite)
 
 end
 
@@ -592,16 +644,20 @@ end
 --
 -- Set Unit on UnitFrame
 
-function VikingUnitFrames:SetUnit(tFrame, unit)
+function VikingUnitFrames:SetUnit(tFrame, unit, ispet)
+  local frame = tFrame.wndUnitFrame or tFrame.wndPetFrame
   tFrame.unit = unit
 
-  tFrame.wndUnitFrame:FindChild("Good"):SetUnit(unit)
-  tFrame.wndUnitFrame:FindChild("Bad"):SetUnit(unit)
+  if ispet ~= nil then
+    tFrame.wndUnitFrame:FindChild("Good"):SetUnit(unit)
+    tFrame.wndUnitFrame:FindChild("Bad"):SetUnit(unit)
 
-  self:SetDisposition(tFrame, unit)
+    self:SetDisposition(tFrame, unit)
+  end
+
 
   -- Set the Data to the unit, for mouse events
-  tFrame.wndUnitFrame:SetData(tFrame.unit)
+  frame:SetData(tFrame.unit)
 
 end
 
@@ -612,7 +668,8 @@ end
 -- Set Name on UnitFrame
 
 function VikingUnitFrames:SetUnitName(tFrame, sName)
-  tFrame.wndUnitFrame:FindChild("UnitName"):SetText(sName)
+  local frame = tFrame.wndUnitFrame or tFrame.wndPetFrame
+  frame:FindChild("UnitName"):SetText(sName)
 end
 
 
@@ -663,13 +720,14 @@ end
 
 function VikingUnitFrames:InitColors(tFrame)
 
+  local frame = tFrame.wndUnitFrame or tFrame.wndPetFrame
   local colors = {
     background = {
-      wnd   = tFrame.wndUnitFrame:FindChild("Background"),
+      wnd   = frame:FindChild("Background"),
       color = ApolloColor.new(self.generalDb.char.colors.background)
     },
     gradient = {
-      wnd   = tFrame.wndUnitFrame,
+      wnd   = frame,
       color = ApolloColor.new(self.generalDb.char.colors.gradient)
     },
     interrupt = {
@@ -715,8 +773,8 @@ end
 
 function VikingUnitFrames:ShowBuffBar(tFrame)
 
-  -- If no unit then don't do anything
-  if tFrame.unit == nil then return end
+  -- If no unit or pet then don't do anything
+  if tFrame.unit == nil or tFrame.wndPetFrame ~= nil then return end
 
   local BuffGood = self.db.char.buffs["BuffGoodShow"]
   local BuffBad  = self.db.char.buffs["BuffBadShow"]
@@ -822,7 +880,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function VikingUnitFrames:OnMouseButtonUp( wndHandler, wndControl, eMouseButton, nLastRelativeMouseX, nLastRelativeMouseY, bDoubleClick, bStopPropagation )
-    if wndHandler ~= wndControl then return end
+  if wndHandler ~= wndControl then return end
   local unit = wndHandler:GetData()
 
   if eMouseButton == GameLib.CodeEnumInputMouse.Left and unit ~= nil then
