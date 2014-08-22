@@ -17,22 +17,22 @@ local VikingUnitFrames = {
 
       Permission is hereby granted, free of charge, to any person obtaining a
       copy of this software and associated documentation files (the
-                                                                "Software"), to deal in the Software without restriction, including
+      "Software"), to deal in the Software without restriction, including
       without limitation the rights to use, copy, modify, merge, publish,
       distribute, sublicense, and/or sell copies of the Software, and to
       permit persons to whom the Software is furnished to do so, subject to
-        the following conditions:
+      the following conditions:
 
-          The above copyright notice and this permission notice shall be included
-        in all copies or substantial portions of the Software.
+      The above copyright notice and this permission notice shall be included
+      in all copies or substantial portions of the Software.
 
-          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-          IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+      OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           ]]
 }
 
@@ -127,8 +127,10 @@ function VikingUnitFrames:OnWindowManagementReady()
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = "Viking Player Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = "Viking Target Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = "Viking Focus Target" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tToTFrame.wndUnitFrame,  strName = "Viking Target of Target Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tToTFrame.wndUnitFrame,         strName = "Viking Target of Target Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerMountFrame.wndPetFrame,  strName = "Viking Player Mount Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerLPetFrame.wndPetFrame,   strName = "Viking Player Left Pet Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerRPetFrame.wndPetFrame,   strName = "Viking Player Right Pet Frame" })
 end
 
 
@@ -203,7 +205,7 @@ function VikingUnitFrames:CreatePetFrame(name)
 
   local tFrame = {
     name          = name,
-    wndPetFrame  = wndPetFrame,
+    wndPetFrame   = wndPetFrame,
     wndHealthBar  = wndPetFrame:FindChild("Bars:Health"),
     wndShieldBar  = wndPetFrame:FindChild("Bars:Shield"),
     wndAbsorbBar  = wndPetFrame:FindChild("Bars:Absorb"),
@@ -211,7 +213,7 @@ function VikingUnitFrames:CreatePetFrame(name)
     wndInterrupt  = wndPetFrame:FindChild("TargetExtra:InterruptArmor"),
   }
 
-  tFrame.wndPetFrame:SetSizingMinimum(140, 60)
+  tFrame.wndPetFrame:SetSizingMinimum(60, 60)
 
   tFrame.locDefaultPosition = WindowLocation.new(self.db.char.position[name:lower() .. "Frame"])
   tFrame.wndPetFrame:MoveToLocation(tFrame.locDefaultPosition)
@@ -248,6 +250,14 @@ function VikingUnitFrames:GetDefaults()
         playermountFrame = {
           fPoints  = {0.5, 1, 0.5, 1},
           nOffsets = {-350, -155, -290, -125}
+        },
+        playerlpetFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {-280, -155, -220, -125}
+        },
+        playerrpetFrame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {-210, -155, -150, -125}
         },
       },
       textStyle = {
@@ -322,6 +332,10 @@ function VikingUnitFrames:OnCharacterLoaded()
   self.tPlayerMountFrame = self:CreatePetFrame("PlayerMount")
   self.tPlayerMountFrame["wndHealthBar"]:SetAnchorPoints(0,0,1,1) -- mounts have no shield
 
+  -- Pet Frames
+  self.tPlayerLPetFrame = self:CreatePetFrame("PlayerLPet")
+  self.tPlayerRPetFrame = self:CreatePetFrame("PlayerRPet")
+
   self.eClassID =  playerUnit:GetClassId()
 
 end
@@ -381,7 +395,13 @@ function VikingUnitFrames:UpdatePetFrame(tFrame, unit)
 
   if unit ~= nil then
     self:SetUnit(tFrame, unit)
-    self:SetUnitName(tFrame, "M")
+    if unit:GetType() == "Mount" then
+      self:SetUnitName(tFrame, "M")
+    else
+      if unit:GetType() == "Pet" then
+        self:SetUnitName(tFrame, string.sub(unit:GetName(),1,2)) -- use first letters of name
+      end
+    end
   end
 
 end
@@ -434,8 +454,36 @@ function VikingUnitFrames:OnFrame()
     self:SetInterruptArmor(self.tToTFrame)
 
     -- PlayerMountFrame
-    self:UpdatePetFrame(self.tPlayerMountFrame,GameLib:GetPlayerMountUnit(), true)
+    self:UpdatePetFrame(self.tPlayerMountFrame, GameLib:GetPlayerMountUnit(), true)
     self:UpdateBars(self.tPlayerMountFrame)
+    self.tPlayerMountFrame["wndHealthBar"]:FindChild("Text"):SetText("")
+    self.tPlayerMountFrame["wndShieldBar"]:FindChild("Text"):SetText("")
+
+    -- PlayerPetFrames
+    local currentpet = GameLib:GetPlayerPets()[1]
+    if currentpet ~= nil then
+       local tt = currentpet:GetName().. "\n"
+          .. "hp: " .. currentpet:GetHealth() .. "/" .. currentpet:GetMaxHealth() .. "\n"
+          .. "shield: " .. currentpet:GetShieldCapacity() .. "/" .. currentpet:GetShieldCapacityMax()
+
+       self:UpdatePetFrame(self.tPlayerLPetFrame, GameLib:GetPlayerPets()[1], true)
+       self:UpdateBars(self.tPlayerLPetFrame)
+       self.tPlayerLPetFrame["wndPetFrame"]:SetTooltip(tt)
+       self.tPlayerLPetFrame["wndHealthBar"]:FindChild("Text"):SetText("")
+       self.tPlayerLPetFrame["wndShieldBar"]:FindChild("Text"):SetText("")
+    end
+    currentpet = GameLib:GetPlayerPets()[2]
+    if currentpet ~= nil then
+       local tt = currentpet:GetName().. "\n"
+          .. "hp: " .. currentpet:GetHealth() .. "/" .. currentpet:GetMaxHealth() .. "\n"
+          .. "shield: " .. currentpet:GetShieldCapacity() .. "/" .. currentpet:GetShieldCapacityMax()
+
+       self:UpdatePetFrame(self.tPlayerRPetFrame, GameLib:GetPlayerPets()[2], true)
+       self:UpdateBars(self.tPlayerRPetFrame)
+       self.tPlayerRPetFrame["wndHealthBar"]:FindChild("Text"):SetText("")
+       self.tPlayerRPetFrame["wndShieldBar"]:FindChild("Text"):SetText("")
+       self.tPlayerRPetFrame["wndPetFrame"]:SetTooltip(tt)
+    end
 
   end
 end
