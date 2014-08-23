@@ -124,17 +124,17 @@ function VikingUnitFrames:OnDocumentReady()
 end
 
 function VikingUnitFrames:OnWindowManagementReady()
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = "Viking Player Frame" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = "Viking Target Frame" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = "Viking Focus Target" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame,      strName = "Viking Player Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame,      strName = "Viking Target Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,       strName = "Viking Focus Target" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tToTFrame.wndUnitFrame,         strName = "Viking Target of Target Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerMountFrame.wndPetFrame,  strName = "Viking Player Mount Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerLPetFrame.wndPetFrame,   strName = "Viking Player Left Pet Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerRPetFrame.wndPetFrame,   strName = "Viking Player Right Pet Frame" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster1Frame.wndPetFrame,   strName = "Viking cluster frame 1" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster2Frame.wndPetFrame,   strName = "Viking cluster frame 2" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster3Frame.wndPetFrame,   strName = "Viking cluster frame 3" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster4Frame.wndPetFrame,   strName = "Viking cluster frame 4" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster1Frame.wndPetFrame,     strName = "Viking cluster frame 1" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster2Frame.wndPetFrame,     strName = "Viking cluster frame 2" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster3Frame.wndPetFrame,     strName = "Viking cluster frame 3" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster4Frame.wndPetFrame,     strName = "Viking cluster frame 4" })
 end
 
 
@@ -303,6 +303,9 @@ function VikingUnitFrames:GetDefaults()
       },
       ToT = {
         ToTFrame = true
+      },
+      Cluster = {
+        ClusterFrames = true
       }
     }
   }
@@ -520,19 +523,21 @@ function VikingUnitFrames:OnFrame()
       local frame = self[frameName]
       frame.wndPetFrame:Show(false,false)
     end
-    if target ~= nil then
-      local cluster = target:GetClusterUnits()
-      for i, unit in ipairs(cluster) do
-	local frameName = "tCluster" .. i .. "Frame"
-	local frame = self[frameName]
-	self:UpdatePetFrame(frame, unit)
-	self:UpdateBars(frame)
-	local tt = unit:GetName().. "\n"
-          .. "hp: " .. unit:GetHealth() .. "/" .. unit:GetMaxHealth() .. "\n"
-          .. "shield: " .. unit:GetShieldCapacity() .. "/" .. unit:GetShieldCapacityMax()
-       frame["wndHealthBar"]:FindChild("Text"):SetText("")
-       frame["wndShieldBar"]:FindChild("Text"):SetText("")
-       frame["wndPetFrame"]:SetTooltip(tt)
+    if self.db.char.Cluster["ClusterFrames"] == true then
+      if target ~= nil then
+	local cluster = target:GetClusterUnits()
+	for i, unit in ipairs(cluster) do
+	  local frameName = "tCluster" .. i .. "Frame"
+	  local frame = self[frameName]
+	  self:UpdatePetFrame(frame, unit)
+	  self:UpdateBars(frame)
+	  local tt = unit:GetName().. "\n"
+	    .. "hp: " .. unit:GetHealth() .. "/" .. unit:GetMaxHealth() .. "\n"
+	    .. "shield: " .. unit:GetShieldCapacity() .. "/" .. unit:GetShieldCapacityMax()
+	  frame["wndHealthBar"]:FindChild("Text"):SetText("")
+	  frame["wndShieldBar"]:FindChild("Text"):SetText("")
+	  frame["wndPetFrame"]:SetTooltip(tt)
+	end
       end
     end
 
@@ -1017,7 +1022,10 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
 
   -- Target of Target Frame
-  wndContainer:FindChild("ToT:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
+  wndContainer:FindChild("OtherFrames:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
+
+  -- Cluster Frames
+  wndContainer:FindChild("OtherFrames:Content:ClusterFrames"):SetCheck(self.db.char.Cluster["ClusterFrames"])
 
   -- Buffs
   wndContainer:FindChild("Buffs:Content:BuffGoodShow"):SetCheck(self.db.char.buffs["BuffGoodShow"])
@@ -1052,6 +1060,10 @@ end
 
 function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
   self.db.char.ToT[wndControl:GetName()] = wndControl:IsChecked()
+end
+
+function VikingUnitFrames:OnSettingsCluster(wndHandler, wndControl, eMouseButton)
+  self.db.char.Cluster[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 function VikingUnitFrames:OnSettingsBuffs(wndHandler, wndControl, eMouseButton)
