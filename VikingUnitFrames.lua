@@ -124,13 +124,17 @@ function VikingUnitFrames:OnDocumentReady()
 end
 
 function VikingUnitFrames:OnWindowManagementReady()
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame, strName = "Viking Player Frame" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame, strName = "Viking Target Frame" })
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,  strName = "Viking Focus Target" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerFrame.wndUnitFrame,      strName = "Viking Player Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tTargetFrame.wndUnitFrame,      strName = "Viking Target Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tFocusFrame.wndUnitFrame,       strName = "Viking Focus Target" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tToTFrame.wndUnitFrame,         strName = "Viking Target of Target Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerMountFrame.wndPetFrame,  strName = "Viking Player Mount Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerLPetFrame.wndPetFrame,   strName = "Viking Player Left Pet Frame" })
   Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tPlayerRPetFrame.wndPetFrame,   strName = "Viking Player Right Pet Frame" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster1Frame.wndPetFrame,     strName = "Viking cluster frame 1" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster2Frame.wndPetFrame,     strName = "Viking cluster frame 2" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster3Frame.wndPetFrame,     strName = "Viking cluster frame 3" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.tCluster4Frame.wndPetFrame,     strName = "Viking cluster frame 4" })
 end
 
 
@@ -237,7 +241,7 @@ function VikingUnitFrames:GetDefaults()
         },
         targetFrame = {
           fPoints   = {0.5, 1, 0.5, 1},
-          nOffsets  = {100, -200, 350, -120}
+          nOffsets  = {100, -240, 350, -160}
         },
         focusFrame = {
           fPoints  = {0, 1, 0, 1},
@@ -258,6 +262,22 @@ function VikingUnitFrames:GetDefaults()
         playerrpetFrame = {
           fPoints  = {0.5, 1, 0.5, 1},
           nOffsets = {-210, -155, -150, -125}
+        },
+	cluster1Frame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {100, -155, 160, -125}
+        },
+	cluster2Frame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {170, -155, 230, -125}
+        },
+	cluster3Frame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {240, -155, 300, -125}
+        },
+	cluster4Frame = {
+          fPoints  = {0.5, 1, 0.5, 1},
+          nOffsets = {310, -155, 370, -125}
         },
       },
       textStyle = {
@@ -283,6 +303,9 @@ function VikingUnitFrames:GetDefaults()
       },
       ToT = {
         ToTFrame = true
+      },
+      Cluster = {
+        ClusterFrames = true
       }
     }
   }
@@ -335,6 +358,12 @@ function VikingUnitFrames:OnCharacterLoaded()
   -- Pet Frames
   self.tPlayerLPetFrame = self:CreatePetFrame("PlayerLPet")
   self.tPlayerRPetFrame = self:CreatePetFrame("PlayerRPet")
+
+  -- Cluster Frames
+  self.tCluster1Frame = self:CreatePetFrame("Cluster1")
+  self.tCluster2Frame = self:CreatePetFrame("Cluster2")
+  self.tCluster3Frame = self:CreatePetFrame("Cluster3")
+  self.tCluster4Frame = self:CreatePetFrame("Cluster4")
 
   self.eClassID =  playerUnit:GetClassId()
 
@@ -400,6 +429,8 @@ function VikingUnitFrames:UpdatePetFrame(tFrame, unit)
     else
       if unit:GetType() == "Pet" then
         self:SetUnitName(tFrame, string.sub(unit:GetName(),1,2)) -- use first letters of name
+      else -- assume cluster
+	self:SetUnitName(tFrame, string.sub(unit:GetName(),1,1))
       end
     end
   end
@@ -483,6 +514,31 @@ function VikingUnitFrames:OnFrame()
        self.tPlayerRPetFrame["wndHealthBar"]:FindChild("Text"):SetText("")
        self.tPlayerRPetFrame["wndShieldBar"]:FindChild("Text"):SetText("")
        self.tPlayerRPetFrame["wndPetFrame"]:SetTooltip(tt)
+    end
+
+    -- ClusterFrames
+    local target  = GameLib.GetTargetUnit()
+    for i = 1,4 do
+      local frameName = "tCluster" .. i .. "Frame"
+      local frame = self[frameName]
+      frame.wndPetFrame:Show(false,false)
+    end
+    if self.db.char.Cluster["ClusterFrames"] == true then
+      if target ~= nil then
+	local cluster = target:GetClusterUnits()
+	for i, unit in ipairs(cluster) do
+	  local frameName = "tCluster" .. i .. "Frame"
+	  local frame = self[frameName]
+	  self:UpdatePetFrame(frame, unit)
+	  self:UpdateBars(frame)
+	  local tt = unit:GetName().. "\n"
+	    .. "hp: " .. unit:GetHealth() .. "/" .. unit:GetMaxHealth() .. "\n"
+	    .. "shield: " .. unit:GetShieldCapacity() .. "/" .. unit:GetShieldCapacityMax()
+	  frame["wndHealthBar"]:FindChild("Text"):SetText("")
+	  frame["wndShieldBar"]:FindChild("Text"):SetText("")
+	  frame["wndPetFrame"]:SetTooltip(tt)
+	end
+      end
     end
 
   end
@@ -966,7 +1022,10 @@ function VikingUnitFrames:UpdateSettingsForm(wndContainer)
   wndContainer:FindChild("CastBar:Content:FocusCastBar"):SetCheck(self.db.char.castBar["FocusCastBar"])
 
   -- Target of Target Frame
-  wndContainer:FindChild("ToT:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
+  wndContainer:FindChild("OtherFrames:Content:ToTFrame"):SetCheck(self.db.char.ToT["ToTFrame"])
+
+  -- Cluster Frames
+  wndContainer:FindChild("OtherFrames:Content:ClusterFrames"):SetCheck(self.db.char.Cluster["ClusterFrames"])
 
   -- Buffs
   wndContainer:FindChild("Buffs:Content:BuffGoodShow"):SetCheck(self.db.char.buffs["BuffGoodShow"])
@@ -1001,6 +1060,10 @@ end
 
 function VikingUnitFrames:OnSettingsToT(wndHandler, wndControl, eMouseButton)
   self.db.char.ToT[wndControl:GetName()] = wndControl:IsChecked()
+end
+
+function VikingUnitFrames:OnSettingsCluster(wndHandler, wndControl, eMouseButton)
+  self.db.char.Cluster[wndControl:GetName()] = wndControl:IsChecked()
 end
 
 function VikingUnitFrames:OnSettingsBuffs(wndHandler, wndControl, eMouseButton)
