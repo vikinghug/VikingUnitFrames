@@ -637,7 +637,7 @@ function VikingUnitFrames:SetClass(tFrame)
   local sUnitType = tFrame.unit:GetType()
 
   if sUnitType == "Player" then
-    locNameText         = { 24, 0, -30, 26 }
+    locNameText         = { 27, 0, -27, 26 }
     sRankIconSprite   = ""
     sPlayerIconSprite = tClassToSpriteMap[tFrame.unit:GetClassId()]
   else
