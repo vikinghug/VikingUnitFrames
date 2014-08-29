@@ -748,16 +748,16 @@ end
 --
 -- Set Unit on UnitFrame
 
-function VikingUnitFrames:SetUnit(tFrame, unit, ispet)
+function VikingUnitFrames:SetUnit(tFrame, unit)
   local frame = tFrame.wndUnitFrame or tFrame.wndPetFrame
   tFrame.unit = unit
 
-  if ispet ~= nil then
-    tFrame.wndUnitFrame:FindChild("Good"):SetUnit(unit)
-    tFrame.wndUnitFrame:FindChild("Bad"):SetUnit(unit)
-
+  if frame:FindChild("Good") then
+    frame:FindChild("Good"):SetUnit(unit)
+    frame:FindChild("Bad"):SetUnit(unit)
     self:SetDisposition(tFrame, unit)
   end
+
 
 
   -- Set the Data to the unit, for mouse events
